@@ -5,9 +5,6 @@ import App from './App.vue'
 import axios from 'axios'
 
 
-
-
-
 // axios.defaults.baseURL='http://124.223.171.19:9090/' //A可用
 axios.defaults.baseURL='http://101.43.94.172:9091/' //B可用
 // axios.defaults.baseURL='http://124.222.196.78:9091/' //E可用
