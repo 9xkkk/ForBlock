@@ -35,15 +35,13 @@
     const time=ref('')
     const variety=ref('')
     const status=ref('')
-    const dialogVisible = ref(false)
-    const showline=ref(false)
-
+    const dialogVisible = ref(false) // 控制对话框显示隐藏
+    const showline=ref(false) // 控制线条显示隐藏
 
     const tableData2=ref([])
     const type=ref('')
     const hash=ref("")
     const finger=ref("")
-
 
     const filedata=ref({})
 
@@ -52,8 +50,6 @@
     const checkdata=ref([])
 
     let brr
-    
-
     
     const handleAvatarSuccess=(response, uploadFile)=> {
         console.log(response,uploadFile)
@@ -68,14 +64,6 @@
     dialogVisible.value = false
 }
 
-    
-
-
-
-
-
-
-
     //上传文件
     const beforeUpload=(file)=>{
         console.log('111');
@@ -84,9 +72,7 @@
         },{
             //表单类型
             headers: {'Content-Type': 'multipart/form-data'}
-        }).then(res=>{
-         
-            
+        }).then(res=>{     
               console.log(res);
             type.value=res.data.type
             console.log(type);
@@ -100,23 +86,21 @@
     message: '上传失败',
     type: 'warning',
   })
-        })
-       
+        })     
        
     }
     //提取指纹
     const fingerprints=()=>{
 
-        //loading
+        //组件loading
         const loading = ElLoading.service({
-    lock: true,
-    text: '正在提取中',
-    background: 'rgba(0, 0, 0, 0.7)',
-  })
+            lock: true,
+            text: '正在提取中',
+            background: 'rgba(0, 0, 0, 0.7)',
+        })
   setTimeout(() => {
     loading.close()
   }, 3000)
-
 
         axios.get(`/verify/fingerprint/${type.value}`).then(res => {
             console.log(res);   
@@ -125,7 +109,6 @@
 
     })
     }
-
 
     //链上追溯
     const trace=()=>{
@@ -158,11 +141,6 @@
         }
         
        }
-
-
-
-
-
 
 
             //可视化视图
@@ -246,13 +224,7 @@
        
     })
     }
-
-    
-
-
-   
 </script>
-
 
 
 <template>
@@ -269,7 +241,6 @@
         </el-dialog>
 
         
-
         <el-card>
             <div class="header">
                 <div style="display: flex;justify-content: center;">

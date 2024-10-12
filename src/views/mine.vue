@@ -27,13 +27,8 @@ const tableData = ref([])
 const tableData2 = ref([])
 const tableData3 = ref([])
 
-
 const fileVisible= ref(false)
 const node=ref('')
-
-
-
-
 
 const checkFile = reactive({
     description: "",
@@ -103,11 +98,6 @@ if (item.status==1) {
 
 }
 
-
-
-
-
-
 //增加了根据id向后端查询文件信息的函数
 const getFileById = (row) => {
     
@@ -129,8 +119,6 @@ const getFileById = (row) => {
         }else{
             checkFile.status="否"
         }
-       
-       
     })
     fileVisible.value = true
 }
@@ -147,11 +135,8 @@ const getData = () => {
         const dataArray = Object.values(tableData2);
 console.log(dataArray)
     })
-   
-    
+      
 }
-
-
 
 
 const handleDeleteApply = (row) => {
@@ -212,9 +197,7 @@ const handleDeleteFile = (row) => {
         type: 'info',
         message: '取消删除',
       })
-    })
-
-   
+    })  
 }
 
 const updateapply = (row) => {
@@ -225,9 +208,7 @@ const updateapply = (row) => {
         
     })
     getData();
-    location.reload()
-
-        
+    location.reload()       
 }
     
 
@@ -239,9 +220,7 @@ const updateapply2 = (row) => {
         
     })
     getData();
-    location.reload()
- 
-    
+    location.reload()     
 }
        
 
@@ -254,10 +233,7 @@ const updateapply3 = (row) => {
         
     })
     getData();
-    location.reload()
-    
-
-   
+    location.reload()  
 }
 const download=(row)=>{
     console.log(row);
@@ -288,8 +264,6 @@ const download=(row)=>{
         });
 
 }
-
-
 
 //添加
 const add=(row)=>{
@@ -337,11 +311,7 @@ const fd=(row)=>{
         
     })
    
-
-
 }
-
-
 
 getData();
    
@@ -403,7 +373,6 @@ getData();
             </div>
         </el-dialog>
 
-      
         <el-card class="box-card" style="margin-top: 20px">
             <template #header>
                 <div class="card-header">
@@ -431,6 +400,7 @@ getData();
                 </el-table>
             </div>
         </el-card>
+
         <el-card class="box-card" style="margin-top: 20px">
             <template #header>
                 <div class="card-header">
@@ -454,9 +424,6 @@ getData();
                         </template>
                     </el-table-column>
 
-
-
-
                     <el-table-column label="">
                         <template v-slot="scope">
                             <div style="display: flex;">
@@ -464,9 +431,7 @@ getData();
                                 <el-button style="margin-left: 20px" v-if="scope.row.status == 4  || scope.row.status==5"
                                     type="success" @click="download(scope.row)" >下载</el-button>
                                 <el-button style="margin-left: 20px" v-if="scope.row.status==5"
-                                    type="warning" @click="fd(scope.row)" >添加</el-button>
-                               
-                               
+                                    type="warning" @click="fd(scope.row)" >添加</el-button>                                                              
                                 <el-button style="margin-left: 20px" type="primary"
                                     @click="getFileById(scope.row)">查看</el-button>
                             </div>
@@ -475,6 +440,7 @@ getData();
                 </el-table>
             </div>
         </el-card>
+
         <el-card class="box-card" style="margin-top: 20px">
             <template #header>
                 <div class="card-header">
@@ -511,8 +477,6 @@ getData();
        
     </div>
 </template>
-
-
 
 <style lang="scss" scoped>
 .mine {

@@ -28,10 +28,10 @@ const routes= [
                 path:'/home/check',
                 component: () => import ('../views/check.vue')
             },
-            // {
-            //     path:'/home/temp',
-            //     component: () => import ('../views/temp.vue')
-            // },
+            {
+                path:'/home/utility',
+                component: () => import ('../views/utility.vue')
+            },
         ]
     },
 

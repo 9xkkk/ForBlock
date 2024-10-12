@@ -103,7 +103,7 @@ const submitUpload=()=>{
 <template>
     <div class="upload">
         <el-card class="box-card">
-            <el-form :model="form" label-width="120px" style="width: 700px">
+            <el-form :model="form" label-width="120px" style="width: 700px; ">
                 <el-form-item label="文件名">
                     <el-input v-model="form.name" />
                 </el-form-item>
@@ -159,6 +159,13 @@ const submitUpload=()=>{
 
 
 <style lang="scss" scoped>
+   .box-card{
+        margin-top: 20px;
+        margin-left: 20px;
+        margin-right: 20px;
+        padding: 20px;
+        border-radius: 5px;
+   }
     .upload{
         height: 100%; 
         width: 100%;
