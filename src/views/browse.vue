@@ -117,16 +117,18 @@ getBrowseList()
     <div class="browse">
         <el-card class="box-card">
             <div>
-                <el-table :data="tableData" style="width: 100%" border>
+                <el-table :data="tableData" style="width: 100%" >
                     <el-table-column prop="fileOwner" label="组织名称" />
                     <el-table-column prop="name" label="文件名" />
                     <el-table-column prop="id" label="ID" />
-                    <el-table-column prop="size" label="大小" />
-                    <el-table-column prop="description" label="描述" width="300" />
+                    <el-table-column prop="size" label="大小" width="200" />
+                    <el-table-column prop="description" label="描述" width="200" />
                     <el-table-column label="操作">
                         <template v-slot="scope">
-                            <el-button style="margin-left: 40px" type="primary" @click="showBox(scope.row)">查看</el-button>
-                            <el-button  style="margin-left: 40px" type="primary" @click="handleSubmit2(scope.row)" v-if="scope.row.status==0">申请共享</el-button>
+                            <div style="display: flex; justify-content: flex-start;">
+                            <el-button style="margin-left: 0px" type="primary" @click="showBox(scope.row)">查看</el-button>
+                            <el-button  style="margin-left: 30px" type="primary" @click="handleSubmit2(scope.row)" v-if="scope.row.status==0">申请共享</el-button>
+                        </div>
                         </template>
                     </el-table-column>
                 </el-table>

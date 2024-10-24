@@ -11,7 +11,8 @@
         ElMenuItem,
         ElRow,
         ElCol,
-        ElMessage
+        ElMessage,
+        ElScrollbar
     } from 'element-plus';
     import {useRouter,RouterView} from 'vue-router'
     import {User, UploadFilled, View, Aim, Histogram} from '@element-plus/icons-vue'    
@@ -50,7 +51,7 @@
             </el-header>
 
             <el-container> 
-            <el-aside width="200px">
+            <el-aside width="200px" >
                 <!-- 侧边栏内容 -->
                 <el-row class="tac" >
                     <el-col >
@@ -128,11 +129,11 @@
             </el-aside>
             
             <el-main>
+                <el-scrollbar height="800px">
                 <!-- 内容区域 -->
-                <el-container>
                     <!-- 内容区域内容 -->                       
                     <RouterView></RouterView>
-                </el-container>
+                </el-scrollbar>
             </el-main>
             </el-container>
 
@@ -158,6 +159,7 @@
             color: #f4f4f4;
             margin: 20px 0 0 200px;  //上右下左          
         }
+
         .my-icon {
             width: 20px !important;
             height: 20px !important;
