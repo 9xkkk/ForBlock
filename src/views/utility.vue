@@ -126,49 +126,59 @@ const chartData = reactive({
       label: '原始准确率',
       backgroundColor: '#5470c6',
       data: [], // 初始为空，稍后用后端数据更新
+      borderRadius: 10, // 添加圆角
     },
     {
       label: '扰动准确率',
       backgroundColor: '#fac858',
       data: [], // 初始为空，稍后用后端数据更新
+      borderRadius: 10, // 添加圆角
     }
   ]
 });
+
 const detailData = reactive({
   labels: ['Random Forest', 'Logistic Regression', 'Linear Regression', 'RBF SVM', 'K-Nearest Neighbors', 'Decision Tree', 'Neural Network'],
   datasets: [
     {
-      label: '扰动前W_F1',
-      backgroundColor: '#16A085',
-      data: [], // 初始为空，稍后用后端数据更新
-    },
-    {
-      label: '扰动后W_F1',
-      backgroundColor: '#E74C3C',
-      data: [], // 初始为空，稍后用后端数据更新
-    },
-    {
       label: '扰动前W_Precision',
-      backgroundColor: '#5470c6',
+      backgroundColor: '#E67E22',
       data: [],
+      borderRadius: 5, // 添加圆角
     },
     {
       label: '扰动后W_Precision',
-      backgroundColor: '#F1C40F',
+      backgroundColor: '#F39C12',
       data: [],
+      borderRadius: 5, // 添加圆角
     },
     {
       label: '扰动前W_Recall',
-      backgroundColor: '#3498DB',
+      backgroundColor: '#27AE60',
       data: [],
+      borderRadius: 5, // 添加圆角
     },
     {
       label: '扰动后W_Recall',
-      backgroundColor: '#FFBE88',
+      backgroundColor: '#2ECC71',
       data: [],
+      borderRadius: 5, // 添加圆角
+    },
+    {
+      label: '扰动前W_F1',
+      backgroundColor: '#3498DB',
+      data: [],
+      borderRadius: 5, // 添加圆角
+    },
+    {
+      label: '扰动后W_F1',
+      backgroundColor: '#5DADE2',
+      data: [],
+      borderRadius: 5, // 添加圆角
     }
   ]
 });
+
 
 const chartOptions = ref({
   responsive: true,
@@ -257,12 +267,12 @@ const modelTrain = () => {
 const updateChart = (accuracyData1, accuracyData2, W_F1_1, W_F1_2, W_Precision_1, W_Precision_2, W_Recall_1, W_Recall_2) => {
   chartData.datasets[0].data = accuracyData1; // 设置第一组准确率
   chartData.datasets[1].data = accuracyData2; // 设置第二组准确率
-  detailData.datasets[0].data = W_F1_1; // 设置第一组W_F1
-  detailData.datasets[1].data = W_F1_2;
-  detailData.datasets[2].data = W_Precision_1; // 设置第一组W_Precision
-  detailData.datasets[3].data = W_Precision_2;
-  detailData.datasets[4].data = W_Recall_1; // 设置第一组W_Recall
-  detailData.datasets[5].data = W_Recall_2;
+  detailData.datasets[4].data = W_F1_1; // 设置第一组W_F1
+  detailData.datasets[5].data = W_F1_2;
+  detailData.datasets[0].data = W_Precision_1; // 设置第一组W_Precision
+  detailData.datasets[1].data = W_Precision_2;
+  detailData.datasets[2].data = W_Recall_1; // 设置第一组W_Recall
+  detailData.datasets[3].data = W_Recall_2;
   console.log('更新后的 detailData:', detailData.datasets);
   console.log('更新后的 chartData:', chartData.datasets);
   loaded.value = true
