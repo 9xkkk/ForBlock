@@ -42,7 +42,7 @@
 
 
     <!-- Chart and Download -->
-    <el-row style="margin-top: 20px;" :gutter="20">
+    <el-row style="margin-top: 20px;" :gutter="10">
       <!-- Chart Card -->
       <el-col :span="18">
         <el-card class="chart-card" shadow="hover">
@@ -64,9 +64,9 @@
       <el-col :span="6">
         <!-- Download Card -->
         <el-card class="download-card" shadow="hover">
-          <el-form :inline="true" :model="formInline" class="demo-form-inline">
-            <el-form-item label="请选择模型：">
-              <el-select v-model="formInline.modelSelect" placeholder="Model List" clearable>
+          <el-form :inline="true" :model="formInline" class="demo-form-inline" >
+            <el-form-item width="100px" label="请选择模型：">
+              <el-select v-model="formInline.modelSelect" placeholder="Model List" clearable >
                 <el-option label="Random Forest" value="Random_Forest_model" />
                 <el-option label="Logistic Regression" value="Logistic_Regression_model" />
                 <el-option label="Linear Regression" value="Linear_SVM_model" />
@@ -342,6 +342,6 @@ const downloadModel = () => {
 }
 
 .demo-form-inline .el-select {
-  --el-select-width: 220px;
+  --el-select-width: 210px;
 }
 </style>

@@ -187,21 +187,30 @@ const trace = () => {
         showline.value = true
 
         // 绘制节点连线图
-        const cy = 100; // 节点的垂直位置 (y 坐标)
-        const newNodeCy = 250; // 新节点的垂直位置 (y 坐标)
+        // 定义五边形中心和半径
+        const centerX = 700; // 五边形的中心 x 坐标
+        const centerY = 200; // 五边形的中心 y 坐标
+        const radius = 100; // 半径
+
         const circleRadius = 30; // 节点的半径
 
-        // 计算每个节点的x坐标，确保水平排列
-        const getNodeX = (index) => 550 + index * 150;
+        const predefinedPositions = [
+            { x: centerX + radius * Math.cos(3 * Math.PI / 2), y: centerY + radius * Math.sin(3 * Math.PI / 2) }, // 第一个点（最尖的点，向下）
+            { x: centerX + radius * Math.cos(3 * Math.PI / 2 + 2 * Math.PI / 5), y: centerY + radius * Math.sin(3 * Math.PI / 2 + 2 * Math.PI / 5) }, // 第二个点
+            { x: centerX + radius * Math.cos(3 * Math.PI / 2 + 4 * Math.PI / 5), y: centerY + radius * Math.sin(3 * Math.PI / 2 + 4 * Math.PI / 5) }, // 第三个点
+            { x: centerX + radius * Math.cos(3 * Math.PI / 2 + 6 * Math.PI / 5), y: centerY + radius * Math.sin(3 * Math.PI / 2 + 6 * Math.PI / 5) }, // 第四个点
+            { x: centerX + radius * Math.cos(3 * Math.PI / 2 + 8 * Math.PI / 5), y: centerY + radius * Math.sin(3 * Math.PI / 2 + 8 * Math.PI / 5) }  // 第五个点
+
+        ];
+
+        console.log('预设坐标：', predefinedPositions);
 
         // 用于连线的x坐标计算
         const getIndex = (node) => result.indexOf(node);
 
         // 定义 SVG 中显示的节点和连线 
         let svgContent = result.map((node, index) => {
-            // 计算节点的坐标
-            const x = getNodeX(index);
-            const y = cy;
+            const { x, y } = predefinedPositions[index]; // 使用当前节点数计算每个节点的坐标
 
             // 根据节点值选择颜色
             let fillColor = 'lightblue'; // 默认颜色
@@ -220,14 +229,21 @@ const trace = () => {
             <text x="${x}" y="${y}" dy="5" text-anchor="middle" font-size="16">${node}</text>`;
         }).join('');
 
+        let newNodeX = 700; // 默认的 x 坐标
+        let newNodeY = 350; // 默认的 y 坐标
+
         // 添加 sourceNode 节点，如果它的值在 result 中不存在
         if (sourceNode.value && !result.includes(sourceNode.value) && sourceNode.value !== 'F') {
-            const newNodeX = 700; // 新节点的x坐标
+            const newNodeIndex = result.length; // 新节点的索引是当前节点数
 
+            const position = predefinedPositions[newNodeIndex];
+
+            newNodeX = position.x; // 更新 newNodeX
+            newNodeY = position.y; // 更新 newNodeY
             // 绘制节点
             svgContent += `
-                <circle cx="${newNodeX}" cy="${newNodeCy}" r="${circleRadius}" fill="orange"  />
-                <text x="${newNodeX}" y="${newNodeCy}" dy="5" text-anchor="middle" font-size="16">${sourceNode.value}</text>`;
+                <circle cx="${newNodeX}" cy="${newNodeY}" r="${circleRadius}" fill="orange"  />
+                <text x="${newNodeX}" y="${newNodeY}" dy="5" text-anchor="middle" font-size="16">${sourceNode.value}</text>`;
         }
 
         // 查找某个节点的状态
@@ -242,8 +258,12 @@ const trace = () => {
             if (index === 0) return '';
             console.log('目前所有节点：', row)
             // 找到对应的两个节点的索引
-            const x1 = getNodeX(getIndex(row[0]));
-            const x2 = getNodeX(getIndex(row[1]));
+            const node1Index = getIndex(row[0]);
+            const node2Index = getIndex(row[1]);
+
+            // 获取节点的坐标
+            const { x: x1, y: y1 } = predefinedPositions[node1Index]; // 节点1的坐标
+            const { x: x2, y: y2 } = predefinedPositions[node2Index]; // 节点2的坐标
 
             // 根据目标节点的状态设置线条颜色
             const status = getNodeStatus(row[1]);
@@ -257,40 +277,61 @@ const trace = () => {
             }
 
             // 调整节点之间的连线，避免箭头挡住圆形
-            const offsetX = circleRadius; // 假设圆的半径为 30，缩短 30 个单位
-            const adjustedX1 = x1 + offsetX; // 起点稍微往右移
-            const adjustedX2 = x2 - offsetX - 10; // 终点稍微往左移
+            const dx = x2 - x1; // x方向的差
+            const dy = y2 - y1; // y方向的差
+            // 缩短连线末尾的比例因子，可以根据需要调整
+            const begin = 0.24;
+            const end = 0.33;
+            const lineLength = Math.sqrt(dx * dx + dy * dy); // 计算连线的长度
+            const adjustedX1 = x1 + (dx / lineLength) * lineLength * begin; // 缩短起点的 x 坐标
+            const adjustedY1 = y1 + (dy / lineLength) * lineLength * begin; // 缩短起点的 y 坐标
+
+            // 新的终点坐标，缩短末尾连线
+            const adjustedX2 = x2 - (dx / lineLength) * lineLength * end; // 缩短 x 坐标
+            const adjustedY2 = y2 - (dy / lineLength) * lineLength * end; // 缩短 y 坐标
+
 
             // 返回调整后的箭头线
             return `
-            <line x1="${adjustedX1}" y1="${cy}" x2="${adjustedX2}" y2="${cy}" stroke="${lineColor}" stroke-width="2" marker-end="url(#arrow-${x1}-${x2}-${lineColor})" />
-            <defs>
-                <marker id="arrow-${x1}-${x2}-${lineColor}" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
-                    <path d="M0,0 L10,5 L0,10 Z" fill="${lineColor}" />
-                </marker>
-            </defs>`;
+             <line x1="${adjustedX1}" y1="${adjustedY1}" x2="${adjustedX2}" y2="${adjustedY2}" 
+              stroke="${lineColor}" stroke-width="2" 
+              marker-end="url(#arrow-${x1}-${x2}-${lineColor})" />
+        <defs>
+            <marker id="arrow-${x1}-${x2}-${lineColor}" markerWidth="10" markerHeight="10" 
+                    refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L10,5 L0,10 Z" fill="${lineColor}" />
+            </marker>
+        </defs>`;
         }).join('');
 
         // 添加 sourceNode 和 fingerNode 之间的连线（如果两个节点不重合）
-        let sourceX, sourceY;
-        const fingerX = getNodeX(getIndex(fingerNode.value)); // fingerNode 的 x 坐标
-        const fingerY = 100; // fingerNode 的 y 坐标固定为 100
+        let sourceX, sourceY, fingerX, fingerY;
+        const fingerIndex = getIndex(fingerNode.value);
+        if (fingerIndex !== -1) {
+            const fingerPos = predefinedPositions[fingerIndex];
+            fingerX = fingerPos.x;
+            fingerY = fingerPos.y;
+        }
 
-        // 如果 sourceNode 在 result 里，通过 getNodeX 获取 x 坐标，否则设定为 350
+        // 检查 sourceNode 的位置
         if (result.includes(sourceNode.value)) {
-            sourceX = getNodeX(getIndex(sourceNode.value)); // sourceNode 在 result 里的 x 坐标
-            sourceY = cy; // 在 result 里的 y 坐标为 100
+            // 如果 sourceNode 在 result 中，直接获取其位置
+            const sourceIndex = getIndex(sourceNode.value);
+            const sourcePos = predefinedPositions[sourceIndex];
+            sourceX = sourcePos.x;
+            sourceY = sourcePos.y;
         } else {
-            sourceX = 700; // 不在 result 里的 sourceNode 坐标
-            sourceY = newNodeCy;
+            // 否则使用前面已计算的 newNodeX 和 newNodeY
+            sourceX = newNodeX;
+            sourceY = newNodeY;
         }
 
         // 添加矩形框
-        const boxWidth = 500; // 设置矩形框的宽度
-        const boxHeight = 250; // 设置矩形框的高度
+        const boxWidth = 450; // 设置矩形框的宽度
+        const boxHeight = 290; // 设置矩形框的高度
         // 计算框的位置（假设从最左上角开始框住节点）
-        const boxX = 450; 
-        const boxY = 50; 
+        const boxX = 500;
+        const boxY = 50;
 
         // 在 SVG 中添加虚线框和 "联盟链内" 文字
         svgContent += `
@@ -336,6 +377,16 @@ const trace = () => {
         if (!isLegal.value && sourceNode.value !== fingerNode.value) {
             const arrowColor = "red"; // 根据 isLegal.value 设置颜色
             let fingerAdjustedX, fingerAdjustedY, sourceAdjustedX, sourceAdjustedY;
+            const fBegin = 0.15; // 15%
+            const cEnd = 0.20; // 31%
+
+            // 计算 dx 和 dy
+            const dx = sourceX - fingerX; // 连接线的 x 方向差
+            const dy = sourceY - fingerY; // 连接线的 y 方向差
+            const lineLength = Math.sqrt(dx * dx + dy * dy); // 计算连线的长度
+            fingerAdjustedX = fingerX + (dx / lineLength) * lineLength * fBegin; // 缩短 finger 的 x 坐标
+            fingerAdjustedY = fingerY + (dy / lineLength) * lineLength * fBegin; // 缩短 finger 的 y 坐标
+
             // 调整连接线的起点和终点
             if (sourceNode.value === 'F') {
                 fingerAdjustedX = fingerX + 30;
@@ -343,10 +394,8 @@ const trace = () => {
                 sourceAdjustedX = boxX + boxWidth + 40; //链外节点
                 sourceAdjustedY = boxY + boxHeight / 2;
             } else {
-                fingerAdjustedX = fingerX;
-                fingerAdjustedY = fingerY + 30;
-                sourceAdjustedX = sourceX;
-                sourceAdjustedY = sourceY - 40;
+                sourceAdjustedX = sourceX - (dx / lineLength) * lineLength * cEnd; // 缩短 source 的 x 坐标
+                sourceAdjustedY = sourceY - (dy / lineLength) * lineLength * cEnd; // 缩短 source 的 y 坐标
             }
             console.log("fingerAdjustedX:", fingerAdjustedX);
             console.log("sourceAdjustedX:", sourceAdjustedX);
@@ -366,11 +415,11 @@ const trace = () => {
         const legendY = 80; // 图例最上边坐标
         const legendSpacing = 30; // 图例项之间的垂直间距
         const circleLegendRadius = 10; // 图例中的圆形半径
-        // 添加图例框
-        const legendBoxWidth = 200; // 图例框的宽度
-        const legendBoxHeight = legendSpacing * 8 + 30; // 图例框的高度，包含标题和内容
-        const legendBoxX = legendX - 30; // 框的x位置，略微向左偏移
-        const legendBoxY = legendY - 40; // 框的y位置，略微向上偏移
+        // // 添加图例框
+        // const legendBoxWidth = 200; // 图例框的宽度
+        // const legendBoxHeight = legendSpacing * 8 + 30; // 图例框的高度，包含标题和内容
+        // const legendBoxX = legendX - 30; // 框的x位置，略微向左偏移
+        // const legendBoxY = legendY - 40; // 框的y位置，略微向上偏移
 
         // // 绘制图例背景框
         // svgContent += `
@@ -450,6 +499,12 @@ const trace = () => {
         </svg>`;
     });
 }
+
+const ref1 = ref() //漫游式引导的三个按钮
+const ref2 = ref()
+const ref3 = ref()
+const open = ref(false)
+const btnRef = ref()
 </script>
 
 
@@ -464,37 +519,53 @@ const trace = () => {
 
 
         <el-card>
-            <div class="header">
-                <div style="display: flex;justify-content: center;">
-                    <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
-                        style="display: flex;width: 500px;" :on-success="handleAvatarSuccess" :on-remove="handleRemove"
-                        :before-upload="beforeUpload" :on-preview="handlePreview">
-                        <el-button type="primary">上传文件</el-button>
-                    </el-upload>
-                </div>
-                <div style="display: flex;justify-content: center;margin: 16px 0;">
-                    <div style="width: 500px;display: flex;">
-                        <el-button type="success" @click="fingerprints()">提取指纹</el-button>
-                        <el-input style="width: 300px;margin-left: 20px" v-model="finger"></el-input>
-                    </div>
-                </div>
-                <div style="display: flex;justify-content: center;margin: 16px 0;">
-                    <div style="width: 500px;display: flex;">
-                        <el-button type="warning" @click="trace()" :disabled="!radio">链上追溯</el-button>
-                        <el-radio-group class="ml-4" style="margin-left: 20px;" v-model="radio">
-                            <el-radio label="A">A</el-radio>
-                            <el-radio label="B">B</el-radio>
-                            <el-radio label="C">C</el-radio>
-                            <el-radio label="D">D</el-radio>
-                            <el-radio label="E">E</el-radio>
-                            <el-radio label="F">公开</el-radio>
-                        </el-radio-group>
-                    </div>
-                </div>
+            <el-row justify="center" style="align-items: center;" :gutter="20">
 
-            </div>
+
+                <el-col :span="12">
+                    <div class="header">
+                        <div style="display: flex;justify-content: center;">
+                            <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
+                                style="display: flex;width: 500px;" :on-success="handleAvatarSuccess"
+                                :on-remove="handleRemove" :before-upload="beforeUpload" :on-preview="handlePreview">
+                                <el-button ref="ref1" type="primary">上传文件</el-button>
+                            </el-upload>
+
+                        </div>
+                        <div style="display: flex;justify-content: center;margin: 16px 0;">
+                            <div style="width: 500px;display: flex;">
+                                <el-button ref="ref2" type="success" @click="fingerprints()">提取指纹</el-button>
+                                <el-input style="width: 300px;margin-left: 20px" v-model="finger"></el-input>
+                            </div>
+                        </div>
+                        <div style="display: flex;justify-content: center;margin: 16px 0;">
+                            <div style="width: 500px;display: flex;">
+                                <el-button ref="ref3" type="warning" @click="trace()" :disabled="!radio">链上追溯</el-button>
+                                <el-radio-group class="ml-4" style="margin-left: 20px;" v-model="radio">
+                                    <el-radio label="A">车企A</el-radio>
+                                    <el-radio label="B">车企B</el-radio>
+                                    <el-radio label="C">设备制造商C</el-radio>
+                                    <el-radio label="D">电网企业D</el-radio>
+                                    <el-radio label="E">充电设备运营商E</el-radio>
+                                    <el-radio label="F">公开</el-radio>
+                                </el-radio-group>
+                            </div>
+                        </div>
+                    </div>
+                </el-col>
+                <el-col :span="1" style="text-align: left;">
+                    <el-button ref="btnRef" type="danger" @click="open = true" plain round>帮助</el-button>
+                </el-col>
+            </el-row>
+
+
         </el-card>
 
+        <el-tour v-model="open">
+      <el-tour-step :target="ref1?.$el" title="第一步" description="上传你想要追溯的csv文件" />
+      <el-tour-step :target="ref2?.$el" title="第二步" description="点击后即开始提取指纹，请耐心等待效用分析结果出来后，再进行链上追溯。" />
+      <el-tour-step :target="ref3?.$el" title="第三步" description="选择你怀疑的泄漏节点后，点击按钮即可查看到该节点的上下游节点信息。" />
+    </el-tour>
 
         <div v-show="showline == true" style="height: 350px;">
 
