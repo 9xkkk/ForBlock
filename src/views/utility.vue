@@ -73,7 +73,7 @@
                 <el-option label="RBF SVM" value="RBF_SVM_model" />
                 <el-option label="K-Nearest Neighbors" value="K-Nearest_Neighbors_model" />
                 <el-option label="Decision Tree" value="Decision_Tree_model" />
-                <el-option label="Neural Network" value="Neural_Network_model" />
+                <!-- <el-option label="Neural Network" value="Neural_Network_model" /> -->
               </el-select>
             </el-form-item>
             <el-form-item>
@@ -120,7 +120,7 @@ const activeTab = ref('model'); //初始值为模型对比
 const chartRef = ref(null);
 // chartData 和 chartOptions 定义
 const chartData = reactive({
-  labels: ['Random Forest', 'Logistic Regression', 'Linear Regression', 'RBF SVM', 'K-Nearest Neighbors', 'Decision Tree', 'Neural Network'],
+  labels: ['Random Forest', 'Logistic Regression', 'Linear Regression', 'RBF SVM', 'K-Nearest Neighbors', 'Decision Tree'],
   datasets: [
     {
       label: '原始准确率',
@@ -138,7 +138,7 @@ const chartData = reactive({
 });
 
 const detailData = reactive({
-  labels: ['Random Forest', 'Logistic Regression', 'Linear Regression', 'RBF SVM', 'K-Nearest Neighbors', 'Decision Tree', 'Neural Network'],
+  labels: ['Random Forest', 'Logistic Regression', 'Linear Regression', 'RBF SVM', 'K-Nearest Neighbors', 'Decision Tree'],
   datasets: [
     {
       label: '扰动前W_Precision',

@@ -72,16 +72,16 @@ const handleClose = (done) => {
 
 //上传文件
 const beforeUpload = (file) => {
-    console.log('111');
+    console.log('上传文件');
     axios.post("/verify/upload2", {
         "FileVerify": file
     }, {
         //表单类型
         headers: { 'Content-Type': 'multipart/form-data' }
     }).then(res => {
-        console.log(res);
+        // console.log(res);
         type.value = res.data.type
-        console.log(type);
+        // console.log(type);
 
         ElMessage({
             message: '上传成功',
@@ -110,7 +110,7 @@ const fingerprints = () => {
     }, 3000)
 
     axios.get(`/verify/fingerprint/${type.value}`).then(res => {
-        console.log(res);    // 如果请求成功，打印响应对象以查看服务器返回的数据
+
         hash.value = res.data.filetxHash  // 从响应数据中提取 'filetxHash' 属性，并更新响应式变量 `hash` 的值
         finger.value = res.data.fingerprint  // 从响应数据中提取 'fingerprint' 属性，并更新响应式变量 `finger` 的值
 
@@ -147,6 +147,7 @@ const trace = () => {
 
         // 共享类型
         for (let i = 0; i < brr.length; i++) {
+            console.log('共享类型，若是5，可用可转发，否则可用不可转发：', brr[i][3])
             if (brr[i][3] == 5) {
                 brr[i][3] = '可用可转发'
             } else {
@@ -174,8 +175,6 @@ const trace = () => {
                         result.push(receiver);
                         findReceiver(receiver);
                     }
-                    // result.push(arr[i][1]);
-                    //findReceiver(arr[i][1]);
                 }
             }
         };
@@ -185,6 +184,10 @@ const trace = () => {
         console.log(tmp) //所有节点去掉头节点，及状态
         console.log(start) //头节点
         showline.value = true
+        console.log('brr数组第一位：', brr[0])
+
+        const realBrr = Array.from(brr);
+        console.log("Converted array:", realBrr);
 
         // 绘制节点连线图
         // 定义五边形中心和半径
@@ -203,19 +206,17 @@ const trace = () => {
 
         ];
 
-        console.log('预设坐标：', predefinedPositions);
-
+        // console.log('预设坐标：', predefinedPositions);
         // 用于连线的x坐标计算
         const getIndex = (node) => result.indexOf(node);
 
         // 定义 SVG 中显示的节点和连线 
         let svgContent = result.map((node, index) => {
             const { x, y } = predefinedPositions[index]; // 使用当前节点数计算每个节点的坐标
-
             // 根据节点值选择颜色
             let fillColor = 'lightblue'; // 默认颜色
             if (node === sourceNode.value && node === fingerNode.value) {
-                fillColor = 'yellow';
+                fillColor = 'lightgreen';
             }
             else if (node === sourceNode.value) {
                 fillColor = 'orange';
@@ -253,10 +254,10 @@ const trace = () => {
         };
 
         // 绘制节点之间的连线
-        let arrowLines = brr.map((row, index) => {
+        let arrowLines = realBrr.map((row, index) => {
             // 第一个节点前面没有连线，跳过
-            if (index === 0) return '';
-            console.log('目前所有节点：', row)
+            // if (index === 0) return '';
+            // console.log('目前所有节点：', row)
             // 找到对应的两个节点的索引
             const node1Index = getIndex(row[0]);
             const node2Index = getIndex(row[1]);
@@ -267,6 +268,7 @@ const trace = () => {
 
             // 根据目标节点的状态设置线条颜色
             const status = getNodeStatus(row[1]);
+            console.log('目标节点状态', status)
 
             let lineColor = "black"; // 默认黑色
 
@@ -279,23 +281,34 @@ const trace = () => {
             // 调整节点之间的连线，避免箭头挡住圆形
             const dx = x2 - x1; // x方向的差
             const dy = y2 - y1; // y方向的差
-            // 缩短连线末尾的比例因子，可以根据需要调整
-            const begin = 0.24;
-            const end = 0.33;
-            const lineLength = Math.sqrt(dx * dx + dy * dy); // 计算连线的长度
-            const adjustedX1 = x1 + (dx / lineLength) * lineLength * begin; // 缩短起点的 x 坐标
-            const adjustedY1 = y1 + (dy / lineLength) * lineLength * begin; // 缩短起点的 y 坐标
 
-            // 新的终点坐标，缩短末尾连线
-            const adjustedX2 = x2 - (dx / lineLength) * lineLength * end; // 缩短 x 坐标
-            const adjustedY2 = y2 - (dy / lineLength) * lineLength * end; // 缩短 y 坐标
+            const lineLength = Math.sqrt(dx * dx + dy * dy); // 计算连线的长度
+            if (lineLength === 0) {
+                console.warn("Nodes are overlapping:", x1, y1, x2, y2);
+                return ''; // 节点重叠时，不绘制线条
+            }
+
+            // 单位方向向量
+            const unit_dx = dx / lineLength;
+            const unit_dy = dy / lineLength;
+
+            // 计算调整后的起点和终点,这样算完前后节点坐标就反了，所以就反过来
+            const adjustedX1 = x1 + unit_dx * circleRadius; 
+            const adjustedY1 = y1 + unit_dy * circleRadius; 
+            const adjustedX2 = x2 - unit_dx * circleRadius; 
+            const adjustedY2 = y2 - unit_dy * circleRadius; 
+            console.log("dx,dy:", {dx, dy});
+            console.log("unit_dx,unit_dy:", {unit_dx, unit_dy});
+            console.log("边长：", { lineLength});
+            console.log("原始坐标：", { x1, y1, x2, y2 });
+            console.log("Adjusted coordinates:", { adjustedX1, adjustedY1, adjustedX2, adjustedY2 });
 
 
             // 返回调整后的箭头线
             return `
-             <line x1="${adjustedX1}" y1="${adjustedY1}" x2="${adjustedX2}" y2="${adjustedY2}" 
-              stroke="${lineColor}" stroke-width="2" 
-              marker-end="url(#arrow-${x1}-${x2}-${lineColor})" />
+            <line x1="${adjustedX1}" y1="${adjustedY1}" x2="${adjustedX2}" y2="${adjustedY2}" 
+                stroke="${lineColor}" stroke-width="2" 
+                marker-end="url(#arrow-${x1}-${x2}-${lineColor})" />
         <defs>
             <marker id="arrow-${x1}-${x2}-${lineColor}" markerWidth="10" markerHeight="10" 
                     refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
@@ -397,8 +410,8 @@ const trace = () => {
                 sourceAdjustedX = sourceX - (dx / lineLength) * lineLength * cEnd; // 缩短 source 的 x 坐标
                 sourceAdjustedY = sourceY - (dy / lineLength) * lineLength * cEnd; // 缩短 source 的 y 坐标
             }
-            console.log("fingerAdjustedX:", fingerAdjustedX);
-            console.log("sourceAdjustedX:", sourceAdjustedX);
+            // console.log("fingerAdjustedX:", fingerAdjustedX);
+            // console.log("sourceAdjustedX:", sourceAdjustedX);
 
             // 添加指向线
             arrowLines += `
@@ -432,23 +445,23 @@ const trace = () => {
 
         // 普通链内节点 - 淡蓝色球
         svgContent += `
-        <circle cx="${legendX + 10}" cy="${legendY}" r="${circleLegendRadius}" fill="lightblue" />
-        <text x="${legendX + 30}" y="${legendY + 5}" font-size="14" fill="black" text-anchor="start">普通链内节点</text>`;
+        <circle cx="${legendX + 10}" cy="${legendY + legendSpacing}" r="${circleLegendRadius}" fill="lightblue" />
+        <text x="${legendX + 30}" y="${legendY + legendSpacing + 5}" font-size="14" fill="black" text-anchor="start">普通链内节点</text>`;
 
         // 文件水印节点 - 淡绿色球
         svgContent += `
-        <circle cx="${legendX + 10}" cy="${legendY + legendSpacing}" r="${circleLegendRadius}" fill="lightgreen" />
-        <text x="${legendX + 30}" y="${legendY + legendSpacing + 5}" font-size="14" fill="black" text-anchor="start">文件水印节点</text>`;
+        <circle cx="${legendX + 10}" cy="${legendY + 2 * legendSpacing}" r="${circleLegendRadius}" fill="lightgreen" />
+        <text x="${legendX + 30}" y="${legendY + 2 * legendSpacing + 5}" font-size="14" fill="black" text-anchor="start">文件指纹节点</text>`;
 
         // 追溯节点 - 橙色球
         svgContent += `
-        <circle cx="${legendX + 10}" cy="${legendY + 2 * legendSpacing}" r="${circleLegendRadius}" fill="orange" />
-        <text x="${legendX + 30}" y="${legendY + 2 * legendSpacing + 5}" font-size="14" fill="black" text-anchor="start">追溯节点</text>`;
+        <circle cx="${legendX + 10}" cy="${legendY + 3 * legendSpacing}" r="${circleLegendRadius}" fill="orange" />
+        <text x="${legendX + 30}" y="${legendY + 3 * legendSpacing + 5}" font-size="14" fill="black" text-anchor="start">追溯节点</text>`;
 
-        // 水印及追溯节点 - 黄色球
-        svgContent += `
-        <circle cx="${legendX + 10}" cy="${legendY + 3 * legendSpacing}" r="${circleLegendRadius}" fill="yellow" />
-        <text x="${legendX + 30}" y="${legendY + 3 * legendSpacing + 5}" font-size="14" fill="black" text-anchor="start">水印及追溯节点</text>`;
+        // // 水印及追溯节点 - 黄色球
+        // svgContent += `
+        // <circle cx="${legendX + 10}" cy="${legendY + 3 * legendSpacing}" r="${circleLegendRadius}" fill="yellow" />
+        // <text x="${legendX + 30}" y="${legendY + 3 * legendSpacing + 5}" font-size="14" fill="black" text-anchor="start">指纹及追溯节点</text>`;
 
         // 链外节点 - 黑色球
         svgContent += `
@@ -522,7 +535,7 @@ const btnRef = ref()
             <el-row justify="center" style="align-items: center;" :gutter="20">
 
 
-                <el-col :span="12">
+                <el-col :span="20">
                     <div class="header">
                         <div style="display: flex;justify-content: center;">
                             <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
@@ -539,8 +552,8 @@ const btnRef = ref()
                             </div>
                         </div>
                         <div style="display: flex;justify-content: center;margin: 16px 0;">
-                            <div style="width: 500px;display: flex;">
-                                <el-button ref="ref3" type="warning" @click="trace()" :disabled="!radio">链上追溯</el-button>
+                            <div style="width: 800px;display: flex;">
+                                <el-text class="mx-1" style="font-weight: bold;">文件来源选择：</el-text>
                                 <el-radio-group class="ml-4" style="margin-left: 20px;" v-model="radio">
                                     <el-radio label="A">车企A</el-radio>
                                     <el-radio label="B">车企B</el-radio>
@@ -550,6 +563,10 @@ const btnRef = ref()
                                     <el-radio label="F">公开</el-radio>
                                 </el-radio-group>
                             </div>
+                        </div>
+                        <div style="display: flex;justify-content: center;margin: 16px 0;">
+                            <el-button ref="ref3" type="warning" @click="trace()"
+                                :disabled="!radio">权限核验与链上追溯</el-button>
                         </div>
                     </div>
                 </el-col>
@@ -562,10 +579,10 @@ const btnRef = ref()
         </el-card>
 
         <el-tour v-model="open">
-      <el-tour-step :target="ref1?.$el" title="第一步" description="上传你想要追溯的csv文件" />
-      <el-tour-step :target="ref2?.$el" title="第二步" description="点击后即开始提取指纹，请耐心等待效用分析结果出来后，再进行链上追溯。" />
-      <el-tour-step :target="ref3?.$el" title="第三步" description="选择你怀疑的泄漏节点后，点击按钮即可查看到该节点的上下游节点信息。" />
-    </el-tour>
+            <el-tour-step :target="ref1?.$el" title="第一步" description="上传你想要追溯的csv文件" />
+            <el-tour-step :target="ref2?.$el" title="第二步" description="点击后即开始提取指纹，请耐心等待效用分析结果出来后，再进行链上追溯。" />
+            <el-tour-step :target="ref3?.$el" title="第三步" description="选择你怀疑的泄漏节点后，点击按钮即可查看到该节点的上下游节点信息。" />
+        </el-tour>
 
         <div v-show="showline == true" style="height: 350px;">
 
