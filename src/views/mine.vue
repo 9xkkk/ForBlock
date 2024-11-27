@@ -30,11 +30,38 @@ const tableData3 = ref([]) //我的文件
 const fileVisible = ref(false)
 const node = ref('')
 
+const isPermissionLoading = ref(false); // 加载动画状态 - 权限标识生成
+const isPrivacyLoading = ref(false); // 加载动画状态 - 隐私变换
+const permissionGenerated = ref(false); // 权限标识生成完成状态
+const privacyTransformed = ref(false); // 隐私变换完成状态
+
+// 权限标识生成处理逻辑
+const handlePermissionGenerated = () => {
+    isPermissionLoading.value = true; // 开始加载动画
+    setTimeout(() => {
+        isPermissionLoading.value = false; // 停止加载动画
+        permissionGenerated.value = true; // 更新完成状态
+        ElMessage.success('权限标识生成成功'); // 弹出消息
+    }, 2000); // 模拟2秒的生成时间
+};
+
+// 隐私变换处理逻辑
+const handlePrivacyTransformed = () => {
+    isPrivacyLoading.value = true; // 开始加载动画
+    setTimeout(() => {
+        isPrivacyLoading.value = false; // 停止加载动画
+        privacyTransformed.value = true; // 更新完成状态
+        ElMessage.success('隐私变换成功'); // 弹出消息
+    }, 2000); // 模拟2秒的生成时间
+};
+
 const dialogFormVisible = ref(false)
 const form = reactive({
     newFileName: '',
 })
 const formLabelWidth = '140px'
+
+const currentRow = ref(null);
 
 const checkFile = reactive({
     description: "",
@@ -223,11 +250,16 @@ const updateapply2 = (row) => {
     //更新申请状态--授权亦可用
     console.log(row);
     axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status: 4 }).then(res => {
-        console.log('授权成功',res);
-
-    })
-    getData();
-    location.reload()
+        console.log('授权成功', res);
+        row.isHandled = true;
+            ElMessage.success('授权亦可用操作成功');
+        })
+        .catch(err => {
+            console.error('操作失败', err);
+            ElMessage.error('操作失败，请重试');
+        });
+        getData();
+        location.reload()
 }
 
 
@@ -235,8 +267,8 @@ const updateapply3 = (row) => {
     //更新申请状态--可用可转发
     console.log(row);
     axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status: 5 }).then(res => {
-
-        console.log('可用可转发',res);
+        row.isHandled = true;
+        console.log('可用可转发', res);
 
     })
     getData();
@@ -445,7 +477,7 @@ getData();
                                     @click="download(scope.row)">下载</el-button>
 
                                 <el-button style="margin-left: 20px" v-if="scope.row.status == 5" type="warning"
-                                    @click=" dialogFormVisible = true; fd(scope.row);">添加</el-button>
+                                    @click=" dialogFormVisible = true; fd(scope.row); currentRow = scope.row;">添加</el-button>
 
 
 
@@ -467,7 +499,7 @@ getData();
             <template #footer>
                 <div class="dialog-footer">
                     <el-button @click="dialogFormVisible = false">Cancel</el-button>
-                    <el-button type="primary" @click="add(scope.row); dialogFormVisible = false">
+                    <el-button type="primary" @click="add(currentRow); dialogFormVisible = false">
                         提交
                     </el-button>
                 </div>
@@ -488,20 +520,70 @@ getData();
 
                     <el-table-column label="">
                         <template v-slot="scope">
-                            <div style="display: flex;">
-                                <el-button style="margin-left: 40px" type="primary"
-                                    @click="showTable2(scope.row)">查看</el-button>
-                                <el-button style="margin-left: 40px" type="danger" @click="updateapply(scope.row)"
-                                    v-if="scope.row.isHandled == false">拒绝</el-button>
-                                <el-button style="margin-left: 40px" type="warning" @click="updateapply2(scope.row)"
-                                    v-if="scope.row.isHandled == false">授权亦可用</el-button>
-                                <el-button style="margin-left: 40px" type="primary" @click="updateapply3(scope.row)"
-                                    v-if="scope.row.isHandled == false">可用可转发</el-button>
-                                <el-button style="margin-left: 40px" type="danger"
-                                    @click="handleDeleteApply(scope.row)">删除</el-button>
+                            <div style="display: flex; flex-direction: column;">
+                                <!-- 第一行按钮：查看、拒绝、删除 -->
+                                <el-row>
+                                    <el-button style="margin-left: 40px" type="primary"
+                                        @click="showTable2(scope.row)">查看</el-button>
 
-                                <el-text style="margin-left: 300px" type="success" disabled="true"
-                                    v-if="scope.row.isHandled == true">已操作</el-text>
+                                    <el-button style="margin-left: 100px" type="danger"
+                                        @click="handleDeleteApply(scope.row)">删除</el-button>
+
+                                    <el-button v-if="scope.row.isHandled == false" style="margin-left: 100px"
+                                        type="danger" @click="updateapply(scope.row)">拒绝</el-button>
+                                    <!-- 已操作文本 -->
+                                    <el-text style="margin-left: 300px" type="success" disabled="true"
+                                        v-if="scope.row.isHandled == true">
+                                        已操作
+                                    </el-text>
+                                </el-row>
+
+                                <!-- 第二行按钮：仅授权可用、可用可转发 -->
+                                <el-row v-if="scope.row.isHandled == false"
+                                    style="margin-top: 10px; align-items: center;">
+                                    <!-- 第一个深灰色框 -->
+                                    <div
+                                        style="margin-left: 30px; display: flex; align-items: center; border: 1px solid #333; padding: 10px; border-radius: 5px; background-color: #f5f5f5;">
+
+                                        <el-button :loading="isPermissionLoading" :disabled="permissionGenerated"
+                                            style="margin-right: 10px" type="primary"
+                                            @click="handlePermissionGenerated">
+                                            权限标识生成
+                                        </el-button>
+                                        <!-- 箭头 -->
+                                        <el-icon style="margin-right: 10px;">
+                                            <Right />
+                                        </el-icon>
+                                        <el-button :loading="isPrivacyLoading"
+                                            :disabled="!permissionGenerated || privacyTransformed" type="primary"
+                                            @click="handlePrivacyTransformed">
+                                            隐私变换
+                                        </el-button>
+
+                                    </div>
+
+                                    <!-- 向右的箭头 -->
+                                    <el-icon style="margin: 0 20px; font-size: 20px; color: #888;">
+                                        <Right />
+                                    </el-icon>
+
+                                    <!-- 第二个深灰色框 -->
+                                    <div
+                                        style="display: flex; align-items: center; border: 1px solid #333; padding: 10px; border-radius: 5px; background-color: #f5f5f5;">
+                                        <el-button style="margin-right: 10px" type="warning"
+                                            :disabled="!privacyTransformed" @click="updateapply2(scope.row)">
+                                            仅授权可用
+                                        </el-button>
+                                        <el-button type="primary" :disabled="!privacyTransformed"
+                                            @click="updateapply3(scope.row)">
+                                            可用可转发
+                                        </el-button>
+                                    </div>
+
+
+                                </el-row>
+
+
                             </div>
                         </template>
                     </el-table-column>

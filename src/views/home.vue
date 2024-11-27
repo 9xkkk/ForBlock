@@ -59,7 +59,7 @@ const handleClose = (key, keyPath) => {
         <el-container>
 
             <el-header style="background-color: rgba(84, 92, 100, 0.9); height: 80px;">
-                <div class="web-title">基于云链聚合的隐私保护电网数据共享与溯源平台</div>
+                <div class="web-title">基于权限标识的跨系统隐私数据共享和溯源平台</div>
             </el-header>
 
             <el-container>
@@ -74,7 +74,7 @@ const handleClose = (key, keyPath) => {
                                     style="display: flex;justify-content: center;font-size: 20px;align-items: center;height: 70px; "
                                     disabled>
                                     <div
-                                        style="display: flex;width: 100%;justify-content: flex-start;align-items: center;margin-left: 0; font-weight: bold; font-style: italic; ">
+                                        style="display: flex;width: auto;justify-content: center;align-items: center;margin-left: 0; font-weight: bold; font-style: italic; ">
                                         {{ nodePrefix }}{{ n }}
                                     </div>
                                 </el-menu-item>
