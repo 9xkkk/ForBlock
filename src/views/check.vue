@@ -532,10 +532,11 @@ const btnRef = ref()
 
 
         <el-card>
+            <div class="right-align">
+            <el-button ref="btnRef" type="danger" @click="open = true" plain round>帮助</el-button>
+        </div>
             <el-row justify="center" style="align-items: center;" :gutter="20">
-
-
-                <el-col :span="20">
+                <!-- <el-col :span="20"> -->
                     <div class="header">
                         <div style="display: flex;justify-content: center;">
                             <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
@@ -553,7 +554,7 @@ const btnRef = ref()
                         </div>
                         <div style="display: flex;justify-content: center;margin: 16px 0;">
                             <div style="width: 800px;display: flex;">
-                                <el-text class="mx-1" style="font-weight: bold;">文件来源选择：</el-text>
+                                <el-text class="mx-1 text-box" style="font-weight: bold;">文件来源选择</el-text>
                                 <el-radio-group class="ml-4" style="margin-left: 20px;" v-model="radio">
                                     <el-radio label="A">车企A</el-radio>
                                     <el-radio label="B">车企B</el-radio>
@@ -569,10 +570,10 @@ const btnRef = ref()
                                 :disabled="!radio">权限核验与链上追溯</el-button>
                         </div>
                     </div>
-                </el-col>
-                <el-col :span="1" style="text-align: left;">
-                    <el-button ref="btnRef" type="danger" @click="open = true" plain round>帮助</el-button>
-                </el-col>
+                <!-- </el-col> -->
+                <!-- <el-col :span="1" style="text-align: left;"> -->
+                    
+                <!-- </el-col> -->
             </el-row>
 
 
@@ -729,6 +730,19 @@ const btnRef = ref()
         justify-content: center;
         /* 水平居中 */
     }
+
+    .text-box {
+  background-color: #f0f4ff; /* 背景颜色 */
+  padding: 5px 10px; /* 内边距，控制背景框大小 */
+  border-radius: 8px; /* 圆角 */
+  display: inline-block; /* 保证背景框包裹文本内容 */
+  border: 1px solid #d4e3ff; /* 可选：加一个边框 */
+}
+
+.right-align {
+  display: flex;
+  justify-content: flex-end;
+}
 
 
 }

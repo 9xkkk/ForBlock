@@ -530,7 +530,7 @@ getData();
                                         @click="handleDeleteApply(scope.row)">删除</el-button>
 
                                     <el-button v-if="scope.row.isHandled == false" style="margin-left: 100px"
-                                        type="danger" @click="updateapply(scope.row)">拒绝</el-button>
+                                        type="warning" @click="updateapply(scope.row)">拒绝</el-button>
                                     <!-- 已操作文本 -->
                                     <el-text style="margin-left: 300px" type="success" disabled="true"
                                         v-if="scope.row.isHandled == true">
@@ -574,7 +574,7 @@ getData();
                                             :disabled="!privacyTransformed" @click="updateapply2(scope.row)">
                                             仅授权可用
                                         </el-button>
-                                        <el-button type="primary" :disabled="!privacyTransformed"
+                                        <el-button type="success" :disabled="!privacyTransformed"
                                             @click="updateapply3(scope.row)">
                                             可用可转发
                                         </el-button>

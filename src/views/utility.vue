@@ -1,42 +1,49 @@
 <template>
   <div>
     <!-- Header -->
+    <el-card>
+      <div class="right-align">
+      <el-button ref="btnRef" type="danger" @click="open = true" plain round>帮助</el-button>
+      </div>
     <el-row justify="center" style="align-items: center;" :gutter="20">
-
-      <el-col :span="12">
+      
+      
+   
+      <el-col :span="8">
         <el-card class="header-card" shadow="hover">
           <div style="text-align: center; padding: 10px;">
-            <h1>模型训练 &nbsp & &nbsp 效用分析</h1>
+            <h1 style="font-size: 20px;">模型训练 &nbsp & &nbsp 效用分析</h1>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="1" style="text-align: left;">
-        <el-button ref="btnRef" type="danger" @click="open = true" plain round>帮助</el-button>
+      <!-- <el-col :span="1" style="text-align: left;"> -->
+        
         <!-- <el-tour v-model="open">
           <el-tour-step title="Center"
             description="你可以对你获取的文件进行效用分析。使用方式：上传你想分析效用的csv文件，点击“模型训练”按钮，等待效用分析结果出来后，再进行模型选择和下载。" />
         </el-tour> -->
-      </el-col>
+      <!-- </el-col> -->
     </el-row>
 
 
     <!-- Buttons -->
     <el-row justify="space-evenly" style="margin-top: 20px;">
       <el-space>
-        <el-col :span="6" :offset="15">
+        <el-col :span="6" :offset="16">
           <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
             style="display: flex;width: 500px;" :on-success="handleAvatarSuccess" :on-remove="handleRemove"
             :before-upload="beforeUpload" :on-preview="handlePreview">
             <el-button ref="ref1" type="primary">上传文件</el-button>
           </el-upload>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="6" :offset="3">
           <div style="width: 500px;display: flex;">
             <el-button ref="ref2" type="success" @click="modelTrain()">模型训练</el-button>
           </div>
         </el-col>
       </el-space>
     </el-row>
+  </el-card>
 
 
 
@@ -46,7 +53,7 @@
       <!-- Chart Card -->
       <el-col :span="18">
         <el-card class="chart-card" shadow="hover">
-          <el-tabs v-model="modelCmp" class="" @tab-click="handleTabClick">
+          <el-tabs v-model="activeTab" class="" @tab-click="handleTabClick">
             <el-tab-pane label="模型对比" name="modelCmp">
               <Bar v-if="loaded" :data="chartData" :options="chartOptions" />
             </el-tab-pane>
@@ -116,7 +123,7 @@ const formInline = reactive({
   modelSelect: ''
 })
 const loaded = ref(false); // 控制图表加载动画
-const activeTab = ref('model'); //初始值为模型对比
+const activeTab = ref('modelCmp'); //初始值为模型对比
 const chartRef = ref(null);
 // chartData 和 chartOptions 定义
 const chartData = reactive({
@@ -235,14 +242,8 @@ const modelTrain = () => {
   })
 
 
-  axios.get(`/utility/train_analysis`).then(res => {
+  axios.get(`/utility/train_analysis?timestamp=${new Date().getTime()}`).then(res => {
     console.log(res);    // 如果请求成功，打印响应对象以查看服务器返回的数据
-    //服务器返回的数据格式：
-    // {
-    //   "Accuracy": [[0.1,0.2,...],[0.01,0.02,...]], 
-    //   "Node": "self"
-    // }
-    // 获取图表数据
     const accuracyData1 = res.data.Accuracy[0]; // 第一组准确率
     const accuracyData2 = res.data.Accuracy[1]; // 第二组准确率
     Node.value = res.data.Node; // 节点类型
@@ -276,7 +277,6 @@ const updateChart = (accuracyData1, accuracyData2, W_F1_1, W_F1_2, W_Precision_1
   console.log('更新后的 detailData:', detailData.datasets);
   console.log('更新后的 chartData:', chartData.datasets);
   loaded.value = true
-
 };
 
 const downloadModel = () => {
@@ -343,5 +343,10 @@ const downloadModel = () => {
 
 .demo-form-inline .el-select {
   --el-select-width: 210px;
+}
+
+.right-align {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
