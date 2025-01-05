@@ -338,7 +338,8 @@ const add = (row) => {
             "name": fileDetails.value.fileName, // 确保使用 fileDetails.value
             "description": fileDetails.value.description,
             "size": fileDetails.value.size,
-            "file_id": fileDetails.value.id // 使用 fileDetails.value.id
+            "file_id": fileDetails.value.id, // 使用 fileDetails.value.id
+            "status": 1
         }, {
             headers: { 'Content-Type': 'multipart/form-data' }
         }).then(res => {
