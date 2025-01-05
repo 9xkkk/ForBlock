@@ -22,7 +22,7 @@ import {
     ElPopover,
     SCOPE
 } from 'element-plus';
-import emitter from '../plugins/bus.js'
+import emitter from '../plugins/bus.js';
 
 const tableData = ref([]) //我的申请
 const tableData2 = ref([]) //申请信息
@@ -33,9 +33,22 @@ const node = ref('')
 
 const isPermissionLoading = ref(false); // 加载动画状态 - 权限标识生成
 const isPrivacyLoading = ref(false); // 加载动画状态 - 隐私变换
-let permissionGenerated = ref(false); // 权限标识生成完成状态
+let yes1 = ref(false);
+let yes2 = ref(true);
+let yes3 = ref(true);
+let loading = ref(false); // 加载动画状态 
+const svg = `
+        <path class="path" d="
+          M 30 15
+          L 28 17
+          M 25.61 25.61
+          A 15 15, 0, 0, 1, 15 30
+          A 15 15, 0, 1, 1, 27.99 7.5
+          L 15 15
+        " style="stroke-width: 4px; fill: rgba(0, 0, 0, 0)"/>
+      `
 const selectAuthority = ref(false); // 隐私变换完成状态
-
+let currentStatus = ref(null);  // 用来存储传递的 status
 const inputBudget = ref('');
 
 // // 缓存权限标识的辅助函数
@@ -56,15 +69,14 @@ const formLabelWidth = '140px'
 const currentRow = ref(null);
 
 const checkFile = reactive({
-    // description: "",
     fileOwner: "",
     time: "",
     id: "",
     fileName: "",
-    hash: "",
+    txHash: "",
     fingerPrint: "",
-    status: "",
-    
+    privacyBudget: "",
+
     // applyOwner: ""
 })
 
@@ -105,20 +117,20 @@ const table3 = reactive({
 })
 
 const showTable2 = (item) => {
-    // console.log(item);
+    console.log('查看', item);
     checkFile.fileOwner = item.fileOwner
     checkFile.fileName = item.fileName
     checkFile.applyOwner = item.applyOwner
     checkFile.id = item.id
-
+    checkFile.fingerPrint = item.fingerPrint
+    checkFile.privacyBudget = item.privacyBudget
+    checkFile.time = item.time
+    checkFile.txHash = item.txHash
     // if (item.status == 1) {
     //     checkFile.status = '是'
     // } else {
     //     checkFile.status = '否'
     // }
-
-    checkFile.time = item.time
-    checkFile.txHash = item.txHash
     fileVisible.value = true
 
 }
@@ -244,95 +256,120 @@ const handleDeleteFile = (row) => {
 
 // 统一的状态更新函数
 const updateStatus = (row, status, successMessage, isHandled) => {
-  const formData = new FormData();
-  console.log('STATUS:', status);
-  formData.set('status', status)
-  axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, formData)
-      .then(res => {
-        console.log(`状态更新为 ${status} 成功`, res);
-        // 更新前端表格数据的状态
-        const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
-        if (rowIndex !== -1) {
-          tableData2.value[rowIndex].status = status;  // 更新状态
-          if (isHandled) {
-            tableData2.value[rowIndex].isHandled = true;  // 只有拒绝时，设置为已处理
-          }
-        }
-        ElMessage.success(successMessage);
-      })
-      .catch(err => {
-        console.error(`操作失败`, err);
-        ElMessage.error('操作失败，请重试');
-      });
+    const formData = new FormData(); 
+    yes1.value = true;
+    yes2.value = false; 
+    loading.value = true;
+    console.log('STATUS:', status);
+    formData.set('status', status)
+    axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, formData)
+        .then(res => {
+            console.log(`状态更新为 ${status} 成功`, res);
+            // 更新前端表格数据的状态
+            const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+            if (rowIndex !== -1) {
+                tableData2.value[rowIndex].status = status;  // 更新状态
+                if (isHandled) {
+                    tableData2.value[rowIndex].isHandled = true;  // 只有拒绝时，设置为已处理
+                }
+            }
+            ElMessage.success(successMessage);
+            // 模拟加载结束，2秒后关闭加载状态
+            setTimeout(() => {
+                loading.value = false;  // 隐藏加载框
+
+            }, 2000);
+        })
+        .catch(err => {
+            console.error(`操作失败`, err);
+            const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+            if (rowIndex !== -1) {
+                tableData2.value[rowIndex].status = status;  // 更新状态
+                if (isHandled) {
+                    tableData2.value[rowIndex].isHandled = true;  // 只有拒绝时，设置为已处理
+                }
+            }
+            // 模拟加载结束，2秒后关闭加载状态
+            setTimeout(() => {
+                loading.value = false;  // 隐藏加载框
+
+            }, 2000);
+            // ElMessage.error('操作失败，请重试');
+        });
 };
 
 // 拒绝操作
 const updateapply = (row) => {
-  const status = 3;  // 拒绝状态
-  console.log('更新申请状态--拒绝', row);
-  updateStatus(row, status, '申请拒绝成功', true);  // 只有拒绝时，设置为已处理
+    const status = 3;  // 拒绝状态
+    console.log('更新申请状态--拒绝', row);
+    updateStatus(row, status, '申请拒绝成功', true);  // 只有拒绝时，设置为已处理
 };
 
 // 授权操作
 const updateapply2 = (row) => {
-  const status = 4;  // 授权亦可用状态
-  selectAuthority.value = true;
-  // 在这里可以进行其他的后续处理
-  // 例如，生成权限标识等操作
-  updateStatus(row, status, '仅授权可用操作成功',false);
+    const status = 4;  // 授权亦可用状态
+    // currentStatus.value = status;  // 将状态存储到 currentStatus 中
+    // yes1.value = true;
+    // yes2.value = false;
+    updateStatus(row, status, '仅授权可用操作成功', false);
 };
 
 // 可用可转发操作
 const updateapply3 = (row) => {
-  const status = 5;  // 可用可转发状态
-  selectAuthority.value = true;
-  // 在这里可以进行其他的后续处理
-  // 例如，生成权限标识等操作
-  updateStatus(row, status, '可用可转发操作成功',false);
+    const status = 5;  // 可用可转发状态
+    // currentStatus.value = status;  // 将状态存储到 currentStatus 中
+    // yes1.value = true;
+    // yes2.value = false;
+    updateStatus(row, status, '可用可转发操作成功', false);
 };
 
 // 权限标识生成处理逻辑（使用统一的 status 更新方法）
-const handlePermissionGenerated = (row, status) => {
-  isPermissionLoading.value = true; // 开始加载动画
+const handlePermissionGenerated = (row) => {
 
-  // updateStatus(row, status, '操作成功');
-  // 停止加载动画
-  isPermissionLoading.value = false;
+    isPermissionLoading.value = true; // 开始加载动画
 
+    // updateStatus(row, status, '操作成功');
+    // 停止加载动画
+    isPermissionLoading.value = false;
 
-  permissionGenerated = true;
-  getData(); // 获取最新数据
-  location.reload();
+    yes2.value = true; //本标识禁用
+    yes3.value = false; //下一个可用
+    getData(); // 获取最新数据
+    // location.reload();
 };
 
 // 隐私变换处理逻辑
-const handlePrivacyTransformed = (row,inputBudget) => {
-  isPrivacyLoading.value = true; // 开始加载动画
-  axios.put(`/myfile/privacy/${row.id}/${row.applyOwner}/${row.fileOwner}/${inputBudget}`)
-      .then(res => {
-        console.log(`隐私预算为 ${inputBudget} `, res);
-        // 更新前端表格数据的状态
-        const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
-        if (rowIndex !== -1) {
-          tableData2.value[rowIndex].isHandled = true; // 设置为已处理
-        }
-        // 停止加载动画
-        isPrivacyLoading.value = false;
+const handlePrivacyTransformed = (row, inputBudget) => {
+    isPrivacyLoading.value = true; // 开始加载动画
+    axios.put(`/myfile/privacy/${row.id}/${row.applyOwner}/${row.fileOwner}/${inputBudget}`)
+        .then(res => {
+            console.log(`隐私预算为 ${inputBudget} `, res);
+            // 更新前端表格数据的状态
+            const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+            if (rowIndex !== -1) {
+                tableData2.value[rowIndex].isHandled = true; // 设置为已处理
+            }
+            // 停止加载动画
+            isPrivacyLoading.value = false;
 
-        ElMessage.success('操作成功');
-        getData();
-        location.reload();
-      })
-      .catch(err => {
-        console.error('操作失败', err);
-        ElMessage.error('操作失败，请重试');
-      });
+            ElMessage.success('操作成功');
+            getData();
+            location.reload();
+        })
+        .catch(err => {
+            getData(); // 即使失败，也拉取最新的数据
+            isPrivacyLoading.value = false;
+            const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+            if (rowIndex !== -1) {
+                tableData2.value[rowIndex].isHandled = true; // 设置为已处理
+            }
+            console.error('操作失败', err);
+            // ElMessage.error('操作失败，请重试');
+        });
 };
 
 //文件下载
 const download = (row) => {
-    console.log(row);
-
     const filename = row.fileName
     const fileowner = row.fileOwner
 
@@ -390,9 +427,11 @@ const downloadOrigin = (row) => {
 //下载变换文件
 const downloadTransformed = (row) => {
     const filename = row.fileName
-    //const fileowner = row.fileOwner
+    console.log('下载变换文件', row);
+    const fileowner = row.fileOwner
     axios({
-        url: `myfile/download/transformed/${filename}`,
+        url: `myfile/download/${filename}/${fileowner}`,
+        // url: `myfile/downloadlocal/${filename}`,
         method: 'GET',
         responseType: 'blob',
     })
@@ -432,8 +471,6 @@ const fd = (row) => {
     // add(row);
 }
 
-
-
 //添加
 const add = (row) => {
     axios.get(`myfile/download/${row.fileName}/${row.fileOwner}`, {
@@ -459,7 +496,6 @@ const add = (row) => {
         }).catch(err => {
             console.log('请求失败:', err);
         });
-
     })
 
 }
@@ -512,14 +548,14 @@ getData();
                 <div style="display: flex;width: 90%;align-items: center;margin-bottom: 16px;">
                     <div style="width: 18%;">区块链哈希:</div>
                     <div style="width: 82%;">
-                        <el-input v-model="checkFile.hash" type="textarea" resize="none"
+                        <el-input v-model="checkFile.txHash" type="textarea" resize="none"
                             :autosize="{ minRows: 2, maxRows: 2 }" disabled></el-input>
                     </div>
                 </div>
                 <div style="display: flex;width: 90%;align-items: center;margin-bottom: 16px;">
                     <div style="width: 18%;">隐私预算:</div>
                     <div style="width: 82%;">
-                        <el-input v-model="checkFile.description" disabled></el-input>
+                        <el-input v-model="checkFile.privacyBudget" disabled></el-input>
                     </div>
                 </div>
             </div>
@@ -623,7 +659,9 @@ getData();
                 </div>
             </template>
             <div>
-                <el-table :data="tableData2" style="width: 100%">
+                <el-table :data="tableData2" style="width: 100%" v-loading="loading" element-loading-text="Loading..."
+                    :element-loading-spinner="svg" element-loading-svg-view-box="-10, -10, 50, 50"
+                   >
                     <el-table-column prop="applyOwner" label="申请节点" width="100" />
                     <el-table-column prop="fileName" label="文件名称" width="180" />
                     <el-table-column prop="fingerPrint" label="权限标识" width="180" />
@@ -642,16 +680,12 @@ getData();
 
                                     <el-button v-if="scope.row.isHandled == false" style="margin-left: 100px"
                                         type="warning" @click="updateapply(scope.row)">拒绝</el-button>
-                                    <el-button
-                                        v-if="scope.row.isHandled == true "
-                                        style="margin-left: 100px" type="success"
-                                        @click="downloadOrigin(scope.row)">下载原文件</el-button>
-                                    <el-button
-                                        v-if="scope.row.isHandled == true "
-                                        style="margin-left: 100px" type="success"
-                                        @click="downloadTransformed(scope.row)">下载变换后文件</el-button>
+                                    <el-button v-if="scope.row.isHandled == true" style="margin-left: 100px"
+                                        type="success" @click="downloadOrigin(scope.row)">下载原文件</el-button>
+                                    <el-button v-if="scope.row.isHandled == true" style="margin-left: 100px"
+                                        type="success" @click="downloadTransformed(scope.row)">下载变换后文件</el-button>
                                     <!-- 已操作文本 -->
-                                    <el-text style="margin-left: 300px" type="success" disabled="true"
+                                    <el-text style="margin-left: 100px" type="success" disabled="true"
                                         v-if="scope.row.isHandled == true">
                                         已操作
                                     </el-text>
@@ -664,12 +698,11 @@ getData();
                                     <div
                                         style="margin-left: 30px; display: flex; align-items: center; border: 1px solid #333; padding: 10px; border-radius: 5px; background-color: #f5f5f5;">
 
-                                        <el-button style="margin-right: 10px" type="warning"
-                                            :disabled="selectAuthority" @click="updateapply2(scope.row)">
+                                        <el-button style="margin-right: 10px" type="warning" :disabled="yes1"
+                                            @click="updateapply2(scope.row)">
                                             仅授权可用
                                         </el-button>
-                                        <el-button type="success" :disabled="selectAuthority"
-                                            @click="updateapply3(scope.row)">
+                                        <el-button type="success" :disabled="yes1" @click="updateapply3(scope.row)">
                                             可用可转发
                                         </el-button>
 
@@ -683,23 +716,19 @@ getData();
                                     <!-- 第二个深灰色框 -->
                                     <!-- <div
                                         style="display: flex; align-items: center; border: 1px solid #333; padding: 10px; border-radius: 5px; background-color: #f5f5f5;"> -->
-                                        <el-button :loading="isPermissionLoading" :disabled="!selectAuthority"
-                                            style="margin-right: 10px" type="primary"
-                                            @click="handlePermissionGenerated(scope.row)">
-                                            权限标识生成
-                                        </el-button>
-                                        <!-- 箭头 -->
-                                        <!-- 向右的箭头 -->
+                                    <el-button :loading="isPermissionLoading" :disabled="yes2"
+                                        style="margin-right: 10px" type="primary"
+                                        @click="handlePermissionGenerated(scope.row)">
+                                        权限标识生成
+                                    </el-button>
+                                    <!-- 箭头 -->
+                                    <!-- 向右的箭头 -->
                                     <el-icon style="margin: 0 10px; font-size: 20px; color: #888;">
                                         <Right />
                                     </el-icon>
-                                        
+
                                     <!-- <span>隐私预算：</span> -->
-                                    <el-input
-                                    v-model="inputBudget"
-                                    style="width: 120px"
-                                    placeholder="输入隐私预算"
-                                    />
+                                    <el-input v-model="inputBudget" style="width: 120px" placeholder="输入隐私预算" />
                                     <!-- </div> -->
 
                                     <!-- 向右的箭头 -->
@@ -707,14 +736,10 @@ getData();
                                         <Right />
                                     </el-icon>
 
-                                    <el-button :loading="isPrivacyLoading"
-                                            :disabled="permissionGenerated " type="danger"
-                                            @click="handlePrivacyTransformed(scope.row, inputBudget)">
-                                            隐私变换和标识嵌入
+                                    <el-button :loading="isPrivacyLoading" :disabled="yes3" type="danger"
+                                        @click="handlePrivacyTransformed(scope.row, inputBudget)">
+                                        隐私变换和标识嵌入
                                     </el-button>
-
-
-
                                 </el-row>
 
 
@@ -732,5 +757,8 @@ getData();
 .mine {
     height: 100%;
     width: 100%;
+}
+.example-showcase .el-loading-mask {
+  z-index: 9;
 }
 </style>
