@@ -19,7 +19,8 @@ import {
     ElTableColumn,
     ElDialog,
     ElInput,
-    ElPopover
+    ElPopover,
+    SCOPE
 } from 'element-plus';
 import emitter from '../plugins/bus.js'
 
@@ -33,17 +34,14 @@ const node = ref('')
 const isPermissionLoading = ref(false); // 加载动画状态 - 权限标识生成
 const isPrivacyLoading = ref(false); // 加载动画状态 - 隐私变换
 const permissionGenerated = ref(false); // 权限标识生成完成状态
-const privacyTransformed = ref(false); // 隐私变换完成状态
+const selectAuthority = ref(false); // 隐私变换完成状态
 
-// 权限标识生成处理逻辑
-const handlePermissionGenerated = () => {
-    isPermissionLoading.value = true; // 开始加载动画
-    setTimeout(() => {
-        isPermissionLoading.value = false; // 停止加载动画
-        permissionGenerated.value = true; // 更新完成状态
-        ElMessage.success('权限标识生成成功'); // 弹出消息
-    }, 2000); // 模拟2秒的生成时间
-};
+// // 缓存权限标识的辅助函数
+// const cacheAuthorityId = (rowId, authorityId) => {
+//     const cachedAuthorities = JSON.parse(localStorage.getItem("authorityIds")) || {};
+//     cachedAuthorities[rowId] = authorityId;
+//     localStorage.setItem("authorityIds", JSON.stringify(cachedAuthorities));
+// };
 
 // 隐私变换处理逻辑
 const handlePrivacyTransformed = () => {
@@ -52,7 +50,7 @@ const handlePrivacyTransformed = () => {
         isPrivacyLoading.value = false; // 停止加载动画
         privacyTransformed.value = true; // 更新完成状态
         ElMessage.success('隐私变换成功'); // 弹出消息
-    }, 2000); // 模拟2秒的生成时间
+    }, 1000); // 模拟生成时间
 };
 
 const dialogFormVisible = ref(false)
@@ -64,16 +62,16 @@ const formLabelWidth = '140px'
 const currentRow = ref(null);
 
 const checkFile = reactive({
-    description: "",
+    // description: "",
     fileOwner: "",
     time: "",
     id: "",
     fileName: "",
     hash: "",
-    size: "",
+    fingerPrint: "",
     status: "",
-    fingerprint: "",
-    applyOwner: ""
+    
+    // applyOwner: ""
 })
 
 const fileDetails = ref({
@@ -113,17 +111,17 @@ const table3 = reactive({
 })
 
 const showTable2 = (item) => {
-    console.log(item);
+    // console.log(item);
     checkFile.fileOwner = item.fileOwner
     checkFile.fileName = item.fileName
     checkFile.applyOwner = item.applyOwner
     checkFile.id = item.id
 
-    if (item.status == 1) {
-        checkFile.status = '是'
-    } else {
-        checkFile.status = '否'
-    }
+    // if (item.status == 1) {
+    //     checkFile.status = '是'
+    // } else {
+    //     checkFile.status = '否'
+    // }
 
     checkFile.time = item.time
     checkFile.txHash = item.txHash
@@ -134,7 +132,7 @@ const showTable2 = (item) => {
 //增加了根据id向后端查询文件信息的函数
 const getFileById = (row) => {
 
-    console.log(row);
+    // console.log(row);
     axios.get(`/myfile/onefile/${row.id}/${row.fileOwner}`).then(res => {
         // console.log(res);
         checkFile.fileOwner = res.data.fileOwner
@@ -163,7 +161,25 @@ const getData = () => {
         tableData.value = res.data.myapply
         tableData2.value = res.data.applylist
         tableData3.value = res.data.filelist
-        console.log('我的文件', res.data.filelist);
+
+        // 从 localStorage 中加载权限标识
+        const cachedAuthorities = JSON.parse(localStorage.getItem("authorityIds")) || {};
+        tableData2.value.forEach(row => {
+            if (cachedAuthorities[row.id]) {
+                row.authorityId = cachedAuthorities[row.id];
+            }
+        });
+
+        // // 合并 authorityCache 中的 authorityId
+        // tableData2.value = res.data.applylist.map(item => {
+        //     if (authorityCache[item.id]) {
+        //         return { ...item, authorityId: authorityCache[item.id] };
+        //     }
+        //     return item;
+        // });
+
+
+        console.log('申请信息', res.data.applylist);
         emitter.emit('fn', node);
         // console.log(tableData2);
         const dataArray = Object.values(tableData2);
@@ -234,46 +250,131 @@ const handleDeleteFile = (row) => {
         })
 }
 
+
 const updateapply = (row) => {
     //更新申请状态--拒绝
+    const status = 3;
     console.log('更新申请状态--拒绝', row);
-    axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status: 3 }).then(res => {
+    axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status}).then(res => {
         console.log(res);
-
+        const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+            if (rowIndex !== -1) {
+                tableData2.value[rowIndex].status = 3; // 状态更新为 "拒绝"
+                tableData2.value[rowIndex].isHandled = true; // 设置为已处理
+            }
+            ElMessage.success('申请拒绝成功');
     })
-    getData();
-    location.reload()
+    .catch(err => {
+            console.error('拒绝操作失败', err);
+            ElMessage.error('操作失败，请重试');
+        });
 }
 
+const status45 = 0;
 
 const updateapply2 = (row) => {
     //更新申请状态--授权亦可用
-    console.log(row);
-    axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status: 4 }).then(res => {
-        console.log('授权成功', res);
-        row.isHandled = true;
-            ElMessage.success('授权亦可用操作成功');
-        })
-        .catch(err => {
-            console.error('操作失败', err);
-            ElMessage.error('操作失败，请重试');
-        });
-        getData();
-        location.reload()
+    // console.log(row);
+    status45 = 4;
+    selectAuthority.value = true;
+    // handlePermissionGenerated(row, status);
+    // axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status: 4 }).then(res => {
+    //     console.log('授权成功', res);
+    //     // 更新前端表格数据的状态
+    //     const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+    //         if (rowIndex !== -1) {
+    //             tableData2.value[rowIndex].status = 4; // 状态更新为 "授权亦可用"
+    //             tableData2.value[rowIndex].isHandled = true; // 设置为已处理
+    //         }
+    //         ElMessage.success('仅授权可用操作成功');
+    //     })
+    //     .catch(err => {
+    //         console.error('授权亦可用操作失败', err);
+    //         ElMessage.error('操作失败，请重试');
+    //     });
 }
 
 
 const updateapply3 = (row) => {
     //更新申请状态--可用可转发
-    console.log(row);
-    axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status: 5 }).then(res => {
-        row.isHandled = true;
-        console.log('可用可转发', res);
-
-    })
-    getData();
-    location.reload()
+    status45 = 5;
+    selectAuthority.value = true;
+    // handlePermissionGenerated(row, status);
+    // console.log('可用可转发', row);
+    // axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status: 5 }).then(res => {
+        
+    //     console.log('可用可转发', res);
+    //      // 更新前端表格数据的状态
+    //     const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+    //         if (rowIndex !== -1) {
+    //             tableData2.value[rowIndex].status = 5; // 状态更新为 "可用可转发"
+    //             tableData2.value[rowIndex].isHandled = true; // 设置为已处理
+    //         }
+    //         ElMessage.success('操作成功：可用可转发');
+    //     })
+    //     .catch(err => {
+    //         console.error('可用可转发操作失败', err);
+    //         ElMessage.error('操作失败，请重试');
+    //     });
 }
+
+
+// 权限标识生成处理逻辑
+const handlePermissionGenerated = (row, status) => {
+    isPermissionLoading.value = true; // 开始加载动画
+    console.log('STATUS:', status);
+    axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, { status45 })
+        .then(res => {
+            console.log(`状态更新为 ${status} 成功`, res);
+            // 更新前端表格数据的状态
+            const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+            if (rowIndex !== -1) {
+                tableData2.value[rowIndex].status = status; // 更新状态
+                tableData2.value[rowIndex].isHandled = true; // 设置为已处理
+            }
+            // 停止加载动画
+            isPermissionLoading.value = false;
+            ElMessage.success('操作成功');
+        })
+        .catch(err => {
+            console.error('操作失败', err);
+            ElMessage.error('操作失败，请重试');
+        });
+    // axios.put(`/myfile/qxbs/${row.id}/${row.applyOwner}/${row.fileOwner}`,{status: 2}).then(res => {
+    //     console.log('put的数据:',res.data);
+    //     if (res.data.FP) {
+    //         const authorityId = res.data.FP; // 获取生成的权限标识
+    //         // 缓存权限标识到前端 localStorage
+    //         cacheAuthorityId(row.id, authorityId);
+
+    //         console.log('生成的权限标识:', authorityId); // 在控制台输出权限标识
+    //         console.log('tableData2:', tableData2.value); // 检查表格数据
+
+    //         // 找到表格中对应的行，并更新权限标识
+    //         const rowIndex = tableData2.value.findIndex(item => item.id === row.id);
+    //         if (rowIndex !== -1) {
+    //             tableData2.value[rowIndex].authorityId = authorityId; // 更新权限标识
+    //             // tableData2.value[rowIndex].isHandled = true; // 更新处理状态
+    //         }
+    //         // 停止加载动画
+    //         isPermissionLoading.value = false;
+    //         // 更新完成状态
+    //         permissionGenerated.value = true;
+    //         // 弹出成功消息
+    //         ElMessage.success('权限标识生成成功');                     
+    //     } else {
+    //         // 如果生成失败，弹出错误消息
+    //         ElMessage.error('生成权限标识失败');
+    //         isPermissionLoading.value = false;
+    //     }
+    // })
+    //     .catch(error => {
+    //         // 捕获错误并显示提示
+    //         console.error('请求失败:', error);
+    //         ElMessage.error('生成权限标识请求失败');
+    //         isPermissionLoading.value = false;
+    //     });
+};
 //文件下载
 const download = (row) => {
     console.log(row);
@@ -305,6 +406,60 @@ const download = (row) => {
 
 }
 
+//下载原文件
+const downloadOrigin = (row) => {
+    const filename = row.fileName
+    //const fileowner = row.fileOwner
+    axios({
+        url: `myfile/downloadlocal/${filename}`,
+        method: 'GET',
+        responseType: 'blob',
+    })
+        .then((response) => {
+            const blob = new Blob([response.data], {
+                type: response.headers['content-type'],
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch((error) => {
+            console.error('下载文件失败:', error);
+        });
+
+}
+//下载变换文件
+const downloadTransformed = (row) => {
+    const filename = row.fileName
+    //const fileowner = row.fileOwner
+    axios({
+        url: `myfile/download/transformed/${filename}`,
+        method: 'GET',
+        responseType: 'blob',
+    })
+        .then((response) => {
+            const blob = new Blob([response.data], {
+                type: response.headers['content-type'],
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch((error) => {
+            console.error('下载文件失败:', error);
+        });
+
+}
 
 const fd = (row) => {
 
@@ -389,17 +544,17 @@ getData();
                     </div>
                 </div>
                 <div style="display: flex;width: 90%;align-items: center;margin-bottom: 16px;">
-                    <div style="width: 18%;">文件大小:</div>
+                    <div style="width: 18%;">权限标识:</div>
                     <div style="width: 82%;">
-                        <el-input v-model="checkFile.size" disabled></el-input>
+                        <el-input v-model="checkFile.fingerPrint" disabled></el-input>
                     </div>
                 </div>
-                <div style="display: flex;width: 90%;align-items: center;margin-bottom: 16px;">
+                <!-- <div style="display: flex;width: 90%;align-items: center;margin-bottom: 16px;">
                     <div style="width: 18%;">是否可转发:</div>
                     <div style="width: 82%;">
                         <el-input v-model="checkFile.status" disabled></el-input>
                     </div>
-                </div>
+                </div> -->
                 <div style="display: flex;width: 90%;align-items: center;margin-bottom: 16px;">
                     <div style="width: 18%;">区块链哈希:</div>
                     <div style="width: 82%;">
@@ -408,7 +563,7 @@ getData();
                     </div>
                 </div>
                 <div style="display: flex;width: 90%;align-items: center;margin-bottom: 16px;">
-                    <div style="width: 18%;">文件描述:</div>
+                    <div style="width: 18%;">隐私预算:</div>
                     <div style="width: 82%;">
                         <el-input v-model="checkFile.description" disabled></el-input>
                     </div>
@@ -517,6 +672,7 @@ getData();
                 <el-table :data="tableData2" style="width: 100%">
                     <el-table-column prop="applyOwner" label="申请节点" width="180" />
                     <el-table-column prop="fileName" label="文件名称" width="180" />
+                    <el-table-column prop="authorityId" label="权限标识" width="180" />
 
                     <el-table-column label="">
                         <template v-slot="scope">
@@ -531,6 +687,14 @@ getData();
 
                                     <el-button v-if="scope.row.isHandled == false" style="margin-left: 100px"
                                         type="warning" @click="updateapply(scope.row)">拒绝</el-button>
+                                    <el-button
+                                        v-if="scope.row.isHandled == true && (scope.row.status == 4 || scope.row.status == 5)"
+                                        style="margin-left: 100px" type="success"
+                                        @click="downloadOrigin(scope.row)">下载原文件</el-button>
+                                    <el-button
+                                        v-if="scope.row.isHandled == true && (scope.row.status == 4 || scope.row.status == 5)"
+                                        style="margin-left: 100px" type="success"
+                                        @click="downloadTransformed(scope.row)">下载变换后文件</el-button>
                                     <!-- 已操作文本 -->
                                     <el-text style="margin-left: 300px" type="success" disabled="true"
                                         v-if="scope.row.isHandled == true">
@@ -545,40 +709,55 @@ getData();
                                     <div
                                         style="margin-left: 30px; display: flex; align-items: center; border: 1px solid #333; padding: 10px; border-radius: 5px; background-color: #f5f5f5;">
 
-                                        <el-button :loading="isPermissionLoading" :disabled="permissionGenerated"
-                                            style="margin-right: 10px" type="primary"
-                                            @click="handlePermissionGenerated">
-                                            权限标识生成
+                                        <el-button style="margin-right: 10px" type="warning"
+                                            :disabled="selectAuthority" @click="updateapply2(scope.row)">
+                                            仅授权可用
                                         </el-button>
-                                        <!-- 箭头 -->
-                                        <el-icon style="margin-right: 10px;">
-                                            <Right />
-                                        </el-icon>
-                                        <el-button :loading="isPrivacyLoading"
-                                            :disabled="!permissionGenerated || privacyTransformed" type="primary"
-                                            @click="handlePrivacyTransformed">
-                                            隐私变换
+                                        <el-button type="success" :disabled="selectAuthority"
+                                            @click="updateapply3(scope.row)">
+                                            可用可转发
                                         </el-button>
 
                                     </div>
 
                                     <!-- 向右的箭头 -->
-                                    <el-icon style="margin: 0 20px; font-size: 20px; color: #888;">
+                                    <el-icon style="margin: 0 10px; font-size: 20px; color: #888;">
                                         <Right />
                                     </el-icon>
 
                                     <!-- 第二个深灰色框 -->
-                                    <div
-                                        style="display: flex; align-items: center; border: 1px solid #333; padding: 10px; border-radius: 5px; background-color: #f5f5f5;">
-                                        <el-button style="margin-right: 10px" type="warning"
-                                            :disabled="!privacyTransformed" @click="updateapply2(scope.row)">
-                                            仅授权可用
+                                    <!-- <div
+                                        style="display: flex; align-items: center; border: 1px solid #333; padding: 10px; border-radius: 5px; background-color: #f5f5f5;"> -->
+                                        <el-button :loading="isPermissionLoading" :disabled="!selectAuthority"
+                                            style="margin-right: 10px" type="primary"
+                                            @click="handlePermissionGenerated(scope.row)">
+                                            权限标识生成
                                         </el-button>
-                                        <el-button type="success" :disabled="!privacyTransformed"
-                                            @click="updateapply3(scope.row)">
-                                            可用可转发
-                                        </el-button>
-                                    </div>
+                                        <!-- 箭头 -->
+                                        <!-- 向右的箭头 -->
+                                    <el-icon style="margin: 0 10px; font-size: 20px; color: #888;">
+                                        <Right />
+                                    </el-icon>
+                                        
+                                    <!-- <span>隐私预算：</span> -->
+                                    <el-input
+                                    v-model="inputBudget"
+                                    style="width: 120px"
+                                    placeholder="输入隐私预算"
+                                    />
+                                    <!-- </div> -->
+
+                                    <!-- 向右的箭头 -->
+                                    <el-icon style="margin: 0 10px; font-size: 20px; color: #888;">
+                                        <Right />
+                                    </el-icon>
+
+                                    <el-button :loading="isPrivacyLoading"
+                                            :disabled="!permissionGenerated " type="danger"
+                                            @click="handlePrivacyTransformed">
+                                            隐私变换和标识嵌入
+                                    </el-button>
+
 
 
                                 </el-row>
