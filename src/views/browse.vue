@@ -1,28 +1,5 @@
 <script setup>
 import { ref } from 'vue'
-import {
-    
-    ElAside,
-    ElContainer,
-    ElHeader,
-    ElMain,
-    ElMenu,
-    ElSubMenu,
-    ElMenuItemGroup,
-    ElMenuItem,
-    ElRow,
-    ElCard,
-    ElMessage,
-    ElButton,
-    ElTable,
-    ElTableColumn,
-    ElDialog,
-    ElMessageBox,
-    ElInput,
-    ElDatePicker,
-    ElRadioGroup,
-    ElRadio
-} from 'element-plus';
 
 import axios from 'axios'
 const dialogVisible = ref(false)
@@ -115,13 +92,17 @@ getBrowseList()
 
 <template>
     <div class="browse">
-        <el-card class="box-card">
-            <div>
-                <el-table :data="tableData" style="width: 100%" >
+        <el-card class="box-card" style="border-radius: 16px;" shadow="hover">
+            <div style="padding: 0;">
+                <el-table :data="tableData" style="width: 100%;">
                     <el-table-column prop="fileOwner" label="组织名称" />
                     <el-table-column prop="name" label="文件名" />
                     <el-table-column prop="id" label="ID" />
-                    <el-table-column prop="size" label="大小" width="200" />
+                    <el-table-column prop="size" label="大小" width="200">
+                        <template v-slot="scope">
+                            {{ scope.row.size.toUpperCase() }}
+                        </template>
+                    </el-table-column>
                     <el-table-column prop="description" label="描述" width="200" />
                     <el-table-column label="操作">
                         <template v-slot="scope">
