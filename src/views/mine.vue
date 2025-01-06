@@ -256,10 +256,9 @@ const handleDeleteFile = (row) => {
 
 // 统一的状态更新函数
 const updateStatus = (row, status, successMessage, isHandled) => {
-    const formData = new FormData(); 
     yes1.value = true;
     yes2.value = false; 
-    loading.value = true;
+    // loading.value = true;
     console.log('STATUS:', status);
     // formData.set('status', status)
     axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}/${status}`)
@@ -275,10 +274,10 @@ const updateStatus = (row, status, successMessage, isHandled) => {
             }
             ElMessage.success(successMessage);
             // 模拟加载结束，2秒后关闭加载状态
-            setTimeout(() => {
-                loading.value = false;  // 隐藏加载框
+            // setTimeout(() => {
+            //     loading.value = false;  // 隐藏加载框
 
-            }, 2000);
+            // }, 2000);
         })
         .catch(err => {
             console.error(`操作失败`, err);
@@ -290,10 +289,10 @@ const updateStatus = (row, status, successMessage, isHandled) => {
                 }
             }
             // 模拟加载结束，2秒后关闭加载状态
-            setTimeout(() => {
-                loading.value = false;  // 隐藏加载框
+            // setTimeout(() => {
+            //     loading.value = false;  // 隐藏加载框
 
-            }, 2000);
+            // }, 2000);
             // ElMessage.error('操作失败，请重试');
         });
 };
@@ -354,7 +353,7 @@ const handlePrivacyTransformed = (row, inputBudget) => {
 
             ElMessage.success('操作成功');
             getData();
-            location.reload();
+            // location.reload();
         })
         .catch(err => {
             getData(); // 即使失败，也拉取最新的数据
@@ -429,13 +428,15 @@ const downloadTransformed = (row) => {
     const filename = row.fileName
     console.log('下载变换文件', row);
     const fileowner = row.fileOwner
+    const applyOwner = row.applyOwner
     axios({
-        url: `myfile/download/${filename}/${fileowner}`,
-        // url: `myfile/downloadlocal/${filename}`,
+        url: `myfile/download/transformed/${filename}/${fileowner}/${applyOwner}`,
+
         method: 'GET',
         responseType: 'blob',
     })
         .then((response) => {
+            
             const blob = new Blob([response.data], {
                 type: response.headers['content-type'],
             });
@@ -449,6 +450,7 @@ const downloadTransformed = (row) => {
             window.URL.revokeObjectURL(url);
         })
         .catch((error) => {
+            
             console.error('下载文件失败:', error);
         });
 
@@ -618,8 +620,10 @@ getData();
                         <template v-slot="scope">
                             <div style="display: flex;">
                                 <div v-html="scope.row.address"></div>
+                                <!-- <div>状态: {{ scope.row.status }}</div>
+                                <div>已处理: {{ scope.row.isHandled }}</div> -->
                                 <el-button style="margin-left: 20px"
-                                    v-if="scope.row.status == 4 || scope.row.status == 5" type="success"
+                                    v-if="scope.row.isHandled && (scope.row.status == 4 || scope.row.status == 5) " type="success"
                                     @click="download(scope.row)">下载</el-button>
 
                                 <el-button style="margin-left: 20px" v-if="scope.row.status == 5" type="warning"
