@@ -261,8 +261,8 @@ const updateStatus = (row, status, successMessage, isHandled) => {
     yes2.value = false; 
     loading.value = true;
     console.log('STATUS:', status);
-    formData.set('status', status)
-    axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}`, formData)
+    // formData.set('status', status)
+    axios.put(`/myfile/update/${row.id}/${row.applyOwner}/${row.fileOwner}/${status}`)
         .then(res => {
             console.log(`状态更新为 ${status} 成功`, res);
             // 更新前端表格数据的状态
