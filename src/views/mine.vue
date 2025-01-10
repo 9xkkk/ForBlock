@@ -193,6 +193,7 @@ const getData = () => {
 }
 
 
+
 const handleDeleteApply = (row) => {
     ElMessageBox.confirm(
         '确认删除吗',
@@ -468,9 +469,9 @@ const fd = (row) => {
             fileDetails.value.status = "否"
         }
         console.log('文件详细信息：', fileDetails);
-        // add(row);
+        
     })
-    // add(row);
+    add(row);
 }
 
 //添加
@@ -479,11 +480,11 @@ const add = (row) => {
         responseType: 'blob'
     }).then(response => {
         const file = new File([response.data], fileDetails.value.fileName, { type: response.data.type });
-        console.log('文件名称：', fileDetails.value.fileName);
+        console.log('文件名称：', fileDetails.value.name);
 
         axios.post("myfile/addfile", {
             "f1": file,
-            "name": fileDetails.value.fileName, // 确保使用 fileDetails.value
+            "name": fileDetails.value.name, // 确保使用 fileDetails.value
             "description": fileDetails.value.description,
             "size": fileDetails.value.size,
             "file_id": fileDetails.value.id, // 使用 fileDetails.value.id
@@ -491,7 +492,7 @@ const add = (row) => {
         }, {
             headers: { 'Content-Type': 'multipart/form-data' }
         }).then(res => {
-            console.log('点击添加，这是文件名称', fileDetails.value.fileName);
+            console.log('点击添加，这是文件名称', fileDetails.value.name);
             ElMessage({
                 type: 'success',
                 message: '已添加',
@@ -626,8 +627,8 @@ getData();
                                     v-if="scope.row.isHandled && (scope.row.status == 4 || scope.row.status == 5) " type="success"
                                     @click="download(scope.row)">下载</el-button>
 
-                                <el-button style="margin-left: 20px" v-if="scope.row.status == 5" type="warning"
-                                    @click=" dialogFormVisible = true; fd(scope.row); currentRow = scope.row;">添加</el-button>
+                                <!-- <el-button style="margin-left: 20px" v-if="scope.row.status == 5" type="warning"
+                                    @click=" fd(scope.row); currentRow = scope.row;">添加</el-button> -->
 
 
 
@@ -640,7 +641,7 @@ getData();
             </div>
         </el-card>
 
-        <el-dialog v-model="dialogFormVisible" title="修改文件名称" width="500">
+        <!-- <el-dialog v-model="dialogFormVisible" title="修改文件名称" width="500">
             <el-form :model="form">
                 <el-form-item label="新的文件名称" :label-width="formLabelWidth">
                     <el-input v-model="fileDetails.fileName" autocomplete="off" />
@@ -654,7 +655,7 @@ getData();
                     </el-button>
                 </div>
             </template>
-        </el-dialog>
+        </el-dialog> -->
 
         <el-card class="box-card" style="margin-top: 20px">
             <template #header>
@@ -685,9 +686,9 @@ getData();
 
                                     <el-button v-if="scope.row.isHandled == false" style="margin-left: 100px"
                                         type="warning" @click="updateapply(scope.row)">拒绝</el-button>
-                                    <el-button v-if="scope.row.isHandled == true" style="margin-left: 100px"
+                                    <el-button v-if="scope.row.status != 3 && scope.row.isHandled == true" style="margin-left: 100px"
                                         type="success" @click="downloadOrigin(scope.row)">下载原文件</el-button>
-                                    <el-button v-if="scope.row.isHandled == true" style="margin-left: 100px"
+                                    <el-button v-if="scope.row.status != 3 && scope.row.isHandled == true" style="margin-left: 100px"
                                         type="success" @click="downloadTransformed(scope.row)">下载变换后文件</el-button>
                                     <!-- 已操作文本 -->
                                     <el-text style="margin-left: 100px" type="success" disabled="true"
