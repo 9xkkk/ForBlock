@@ -254,10 +254,9 @@ const modelTrain = () => {
     const W_Recall_1 = res.data.W_Recall[0];
     const W_Recall_2 = res.data.W_Recall[1];
     updateChart(accuracyData1, accuracyData2, W_F1_1, W_F1_2, W_Precision_1, W_Precision_2, W_Recall_1, W_Recall_2);
-    // 延迟关闭loading
-    setTimeout(() => {
-      loading.close()
-    }, 3000)
+
+    loading.close()
+
   }).catch((err) => {
     console.error('Error fetching model data:', err);
 

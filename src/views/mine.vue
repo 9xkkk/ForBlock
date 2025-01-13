@@ -274,11 +274,7 @@ const updateStatus = (row, status, successMessage, isHandled) => {
                 }
             }
             ElMessage.success(successMessage);
-            // 模拟加载结束，2秒后关闭加载状态
-            // setTimeout(() => {
-            //     loading.value = false;  // 隐藏加载框
 
-            // }, 2000);
         })
         .catch(err => {
             console.error(`操作失败`, err);
@@ -289,12 +285,6 @@ const updateStatus = (row, status, successMessage, isHandled) => {
                     tableData2.value[rowIndex].isHandled = true;  // 只有拒绝时，设置为已处理
                 }
             }
-            // 模拟加载结束，2秒后关闭加载状态
-            // setTimeout(() => {
-            //     loading.value = false;  // 隐藏加载框
-
-            // }, 2000);
-            // ElMessage.error('操作失败，请重试');
         });
 };
 

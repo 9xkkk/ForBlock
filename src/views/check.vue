@@ -104,15 +104,12 @@ const fingerprints = () => {
         text: '正在提取中',
         background: 'rgba(0, 0, 0, 0.7)',
     })
-    // 延迟关闭loading
-    setTimeout(() => {
-        loading.close()
-    }, 3000)
 
     axios.get(`/verify/fingerprint/${type.value}`).then(res => {
 
         hash.value = res.data.filetxHash  // 从响应数据中提取 'filetxHash' 属性，并更新响应式变量 `hash` 的值
         finger.value = res.data.fingerprint  // 从响应数据中提取 'fingerprint' 属性，并更新响应式变量 `finger` 的值
+        loading.close()
 
     })
 }
