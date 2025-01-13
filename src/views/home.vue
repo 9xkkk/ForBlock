@@ -59,7 +59,7 @@ const handleClose = (key, keyPath) => {
         <el-container>
 
             <el-header style="background-color: rgba(84, 92, 100, 0.9); height: 80px;">
-                <div class="web-title">基于云链聚合的隐私保护数据共享与溯源平台</div>
+                <div class="web-title">跨系统隐私计算及安全保障原理验证系统</div>
             </el-header>
 
             <el-container>
