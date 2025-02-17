@@ -290,13 +290,13 @@ const trace = () => {
             const unit_dy = dy / lineLength;
 
             // 计算调整后的起点和终点,这样算完前后节点坐标就反了，所以就反过来
-            const adjustedX1 = x1 + unit_dx * circleRadius; 
-            const adjustedY1 = y1 + unit_dy * circleRadius; 
-            const adjustedX2 = x2 - unit_dx * circleRadius; 
-            const adjustedY2 = y2 - unit_dy * circleRadius; 
-            console.log("dx,dy:", {dx, dy});
-            console.log("unit_dx,unit_dy:", {unit_dx, unit_dy});
-            console.log("边长：", { lineLength});
+            const adjustedX1 = x1 + unit_dx * circleRadius;
+            const adjustedY1 = y1 + unit_dy * circleRadius;
+            const adjustedX2 = x2 - unit_dx * circleRadius;
+            const adjustedY2 = y2 - unit_dy * circleRadius;
+            console.log("dx,dy:", { dx, dy });
+            console.log("unit_dx,unit_dy:", { unit_dx, unit_dy });
+            console.log("边长：", { lineLength });
             console.log("原始坐标：", { x1, y1, x2, y2 });
             console.log("Adjusted coordinates:", { adjustedX1, adjustedY1, adjustedX2, adjustedY2 });
 
@@ -522,54 +522,60 @@ const btnRef = ref()
     <div class="check">
 
         <el-dialog v-model="dialogVisible" title="文件详细信息" width="40%" :before-close="handleClose">
-            <div>
-                <el-input type="textarea" v-model="filedata" disabled />
-            </div>
+            <el-form>
+                <!-- 第一行显示 "文件信息：" 和 filedata -->
+                <el-form-item label="文件信息：">
+                    <el-input type="textarea" v-model="filedata" disabled :autosize="{ minRows: 6, maxRows: 10 }" />
+                </el-form-item>
+                <!-- 第二行显示 "文件 Hash：" 和 hash -->
+                <el-form-item label="文件哈希值：">
+                    <el-input type="textarea" v-model="hash" disabled />
+                </el-form-item>
+            </el-form>
         </el-dialog>
 
 
         <el-card>
             <div class="right-align">
-            <el-button ref="btnRef" type="danger" @click="open = true" plain round>帮助</el-button>
-        </div>
+                <el-button ref="btnRef" type="danger" @click="open = true" plain round>帮助</el-button>
+            </div>
             <el-row justify="center" style="align-items: center;" :gutter="20">
                 <!-- <el-col :span="20"> -->
-                    <div class="header">
-                        <div style="display: flex;justify-content: center;">
-                            <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
-                                style="display: flex;width: 500px;" :on-success="handleAvatarSuccess"
-                                :on-remove="handleRemove" :before-upload="beforeUpload" :on-preview="handlePreview">
-                                <el-button ref="ref1" type="primary">上传文件</el-button>
-                            </el-upload>
+                <div class="header">
+                    <div style="display: flex;justify-content: center;">
+                        <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
+                            style="display: flex;width: 500px;" :on-success="handleAvatarSuccess"
+                            :on-remove="handleRemove" :before-upload="beforeUpload" :on-preview="handlePreview">
+                            <el-button ref="ref1" type="primary">上传文件</el-button>
+                        </el-upload>
 
-                        </div>
-                        <div style="display: flex;justify-content: center;margin: 16px 0;">
-                            <div style="width: 500px;display: flex;">
-                                <el-button ref="ref2" type="success" @click="fingerprints()">提取指纹</el-button>
-                                <el-input style="width: 300px;margin-left: 20px" v-model="finger"></el-input>
-                            </div>
-                        </div>
-                        <div style="display: flex;justify-content: center;margin: 16px 0;">
-                            <div style="width: 800px;display: flex;">
-                                <el-text class="mx-1 text-box" style="font-weight: bold;">文件来源选择</el-text>
-                                <el-radio-group class="ml-4" style="margin-left: 20px;" v-model="radio">
-                                    <el-radio label="A">车企A</el-radio>
-                                    <el-radio label="B">车企B</el-radio>
-                                    <el-radio label="C">设备制造商C</el-radio>
-                                    <el-radio label="D">电网企业D</el-radio>
-                                    <el-radio label="E">充电设备运营商E</el-radio>
-                                    <el-radio label="F">公开</el-radio>
-                                </el-radio-group>
-                            </div>
-                        </div>
-                        <div style="display: flex;justify-content: center;margin: 16px 0;">
-                            <el-button ref="ref3" type="warning" @click="trace()"
-                                :disabled="!radio">权限核验与链上追溯</el-button>
+                    </div>
+                    <div style="display: flex;justify-content: center;margin: 16px 0;">
+                        <div style="width: 500px;display: flex;">
+                            <el-button ref="ref2" type="success" @click="fingerprints()">提取指纹</el-button>
+                            <el-input style="width: 300px;margin-left: 20px" v-model="finger"></el-input>
                         </div>
                     </div>
+                    <div style="display: flex;justify-content: center;margin: 16px 0;">
+                        <div style="width: 800px;display: flex;">
+                            <el-text class="mx-1 text-box" style="font-weight: bold;">文件来源选择</el-text>
+                            <el-radio-group class="ml-4" style="margin-left: 20px;" v-model="radio">
+                                <el-radio label="A">车企A</el-radio>
+                                <el-radio label="B">车企B</el-radio>
+                                <el-radio label="C">设备制造商C</el-radio>
+                                <el-radio label="D">电网企业D</el-radio>
+                                <el-radio label="E">充电设备运营商E</el-radio>
+                                <el-radio label="F">公开</el-radio>
+                            </el-radio-group>
+                        </div>
+                    </div>
+                    <div style="display: flex;justify-content: center;margin: 16px 0;">
+                        <el-button ref="ref3" type="warning" @click="trace()" :disabled="!radio">权限核验与链上追溯</el-button>
+                    </div>
+                </div>
                 <!-- </el-col> -->
                 <!-- <el-col :span="1" style="text-align: left;"> -->
-                    
+
                 <!-- </el-col> -->
             </el-row>
 
@@ -729,17 +735,22 @@ const btnRef = ref()
     }
 
     .text-box {
-  background-color: #f0f4ff; /* 背景颜色 */
-  padding: 5px 10px; /* 内边距，控制背景框大小 */
-  border-radius: 8px; /* 圆角 */
-  display: inline-block; /* 保证背景框包裹文本内容 */
-  border: 1px solid #d4e3ff; /* 可选：加一个边框 */
-}
+        background-color: #f0f4ff;
+        /* 背景颜色 */
+        padding: 5px 10px;
+        /* 内边距，控制背景框大小 */
+        border-radius: 8px;
+        /* 圆角 */
+        display: inline-block;
+        /* 保证背景框包裹文本内容 */
+        border: 1px solid #d4e3ff;
+        /* 可选：加一个边框 */
+    }
 
-.right-align {
-  display: flex;
-  justify-content: flex-end;
-}
+    .right-align {
+        display: flex;
+        justify-content: flex-end;
+    }
 
 
 }
