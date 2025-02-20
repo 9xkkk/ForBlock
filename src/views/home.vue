@@ -52,6 +52,10 @@ const handleSelect = (key, keyPath) => {
 const handleClose = (key, keyPath) => {
     console.log(key, keyPath)
 }
+
+const goToLogin = () => {
+    window.location.href = "http://124.223.171.19/login/"
+}
 </script>
 
 <template>
@@ -59,7 +63,12 @@ const handleClose = (key, keyPath) => {
         <el-container>
 
             <el-header style="background-color: rgba(84, 92, 100, 0.9); height: 80px;">
-                <div class="web-title">跨系统隐私计算及安全保障原理验证系统</div>
+                <div class="web-title">跨系统隐私计算及安全保障原理验证系统
+
+                    <el-button  plain style="float: right;" @click="goToLogin">退出登录</el-button>
+
+                </div>                
+                
             </el-header>
 
             <el-container>
