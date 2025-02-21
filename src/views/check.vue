@@ -545,7 +545,7 @@ const btnRef = ref()
                     <div style="display: flex;justify-content: center;">
                         <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
                             style="display: flex;width: 500px;" :on-success="handleAvatarSuccess"
-                            :on-remove="handleRemove" :before-upload="beforeUpload" :on-preview="handlePreview">
+                            :on-remove="handleRemove" :before-upload="beforeUpload" :on-preview="handlePreview" :auto-upload="false">
                             <el-button ref="ref1" type="primary">上传文件</el-button>
                         </el-upload>
 

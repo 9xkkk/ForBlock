@@ -49,7 +49,7 @@ const svg = `
       `
 const selectAuthority = ref(false); // 隐私变换完成状态
 let currentStatus = ref(null);  // 用来存储传递的 status
-const inputBudget = ref('');
+// const inputBudget = ref('');
 
 // // 缓存权限标识的辅助函数
 // const cacheAuthorityId = (rowId, authorityId) => {
@@ -197,10 +197,10 @@ const getData = () => {
 const handleDeleteApply = (row) => {
     ElMessageBox.confirm(
         '确认删除吗',
-        'Warning',
+        '警告',
         {
-            confirmButtonText: 'OK',
-            cancelButtonText: 'Cancel',
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
             type: 'warning',
         }
     )
@@ -228,10 +228,10 @@ const handleDeleteApply = (row) => {
 const handleDeleteFile = (row) => {
     ElMessageBox.confirm(
         '确认删除吗',
-        'Warning',
+        '警告',
         {
-            confirmButtonText: 'OK',
-            cancelButtonText: 'Cancel',
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
             type: 'warning',
         }
     )
@@ -329,7 +329,8 @@ const handlePermissionGenerated = (row) => {
 };
 
 // 隐私变换处理逻辑
-const handlePrivacyTransformed = (row, inputBudget) => {
+const handlePrivacyTransformed = (row) => {
+    const inputBudget = row.privacyBudget; // 使用当前行的隐私预算
     isPrivacyLoading.value = true; // 开始加载动画
     axios.put(`/myfile/privacy/${row.id}/${row.applyOwner}/${row.fileOwner}/${inputBudget}`)
         .then(res => {
@@ -571,7 +572,7 @@ getData();
                     <el-table-column label="操作">
                         <template v-slot="scope">
                             <div style="display: flex;">
-                                <el-button style="margin-left: 40px" type="primary"
+                                <el-button style="margin-left: 0px" type="primary"
                                     @click="getFileById(scope.row)">查看</el-button>
                                 <el-button style="margin-left: 40px" type="danger"
                                     @click="handleDeleteFile(scope.row)">删除</el-button>
@@ -657,7 +658,7 @@ getData();
             <div>
                 <el-table :data="tableData2" style="width: 100%" v-loading="loading" element-loading-text="Loading..."
                     :element-loading-spinner="svg" element-loading-svg-view-box="-10, -10, 50, 50"
-                   >
+                >
                     <el-table-column prop="applyOwner" label="申请节点" width="100" />
                     <el-table-column prop="fileName" label="文件名称" width="180" />
                     <el-table-column prop="fingerPrint" label="权限标识" width="180" />
@@ -724,7 +725,7 @@ getData();
                                     </el-icon>
 
                                     <!-- <span>隐私预算：</span> -->
-                                    <el-input v-model="inputBudget" style="width: 120px" placeholder="输入隐私预算" />
+                                    <el-input v-model="scope.row.privacyBudget" style="width: 120px" placeholder="输入隐私预算" />
                                     <!-- </div> -->
 
                                     <!-- 向右的箭头 -->
@@ -733,7 +734,7 @@ getData();
                                     </el-icon>
 
                                     <el-button :loading="isPrivacyLoading" :disabled="yes3" type="danger"
-                                        @click="handlePrivacyTransformed(scope.row, inputBudget)">
+                                        @click="handlePrivacyTransformed(scope.row, scope.row.privacyBudget)">
                                         隐私变换和标识嵌入
                                     </el-button>
                                 </el-row>
