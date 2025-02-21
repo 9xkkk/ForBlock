@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import {    toRaw,ref, reactive } from 'vue'
 import {
     ElAside,
     ElContainer,
@@ -24,64 +24,71 @@ import {
 } from 'element-plus';
 import axios from 'axios'
 
-const form = reactive({
-    //表单格式
-    name: '',
-    region: '',
-    date1: '',
-    date2: '',
-    delivery: false,
-    type: [],
-    resource: '',
-    desc: '',
-    num: '',
-    size: '',
-    description: ''
+// const form = ref({
+//     name: '',
+//     delivery: false,
+//     type: [],
+//     resource: '',
+//     desc: '',
+//     num: '',
+//     size: '',
+//     description: ''
+// })
 
+const form = ref("")
 
+const handleChange = (file, fileLists) => { 
+    console.log("handlechange file", file)
+    form.value = file
+    form.value.name = file.name  // 使用 .value 访问和修改
+    form.value.size = (file.size / 1000) + ' KB'  // 使用 .value 访问和修改
+    // console.log("上传文件名:", form.value.name)
+    // console.log("文件大小:", form.value.size)
+    console.log("完整的form:", form.value)
+}
 
-})
 const onSubmit = () => {
-    console.log('submit!')
+    // console.log('submit!')
 }
-const fileList = []
+const fileList = ref([])
 
-const handleAvatarSuccess = (response, uploadFile) => {
-    console.log(response, uploadFile)
-    form.name = uploadFile.name
-    form.size = uploadFile.size
-    // imageUrl.value = URL.createObjectURL(uploadFile.raw)
-}
-const handleRemove = (file, uploadFiles) => {
-    console.log(file, uploadFiles)
-    form.name = ''
-    form.size = ''
-    form.num = ''
-    form.resource = ''
-}
+// //未用
+// const handleAvatarSuccess = (response, uploadFile) => {
+//     console.log("handleAvatarSuccess", response, uploadFile)
+//     form.name = uploadFile.name
+//     form.size = uploadFile.size
+//     // imageUrl.value = URL.createObjectURL(uploadFile.raw)
+// }
 
-
-const uploadData = ref("")
-
-const beforeUpload = (file) => {
-
-    console.log(222);
-    console.log(file);
-    uploadData.value = file
+// const handleRemove = (file, fileList) => {
+//     console.log("handleRemove" ,file, uploadFiles)
+//     form.name = ''
+//     form.size = ''
+//     form.num = ''
+//     form.resource = ''
+// }
 
 
+//未用
+// const uploadData = ref("")
 
-}
+// const beforeUpload = (file) => {
+
+//     console.log("文件：", file);
+//     uploadData.value = file
+// }
+
 const submitUpload = () => {
-    console.log(uploadData.value)
-
-
-    axios.post("upload/confirm", {
-        "f1": uploadData.value,
-        "name": form.name || uploadData.value.name,
-        "description": form.description,
-        "size": form.size || uploadData.value.size,
-        "status": form.resource
+    // console.log("upload数据", uploadData.value)
+    console.log("form文件:", form.value.raw)
+    // console.log("清空前 fileList:", fileList.value);
+    axios.post("upload/confirm", 
+    {
+        "f1": form.value.raw,
+        "name": form.value.name ,
+        "description": form.value.description,
+        "size": form.value.size,
+        "status": form.value.resource
     }, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }).then(res => {
@@ -89,6 +96,7 @@ const submitUpload = () => {
             message: '上传成功',
             type: 'success',
         })
+        fileList.value=[]
     }).catch(err => {
         ElMessage({
             message: '上传失败' + err,
@@ -126,12 +134,14 @@ const submitUpload = () => {
 
 
                     <el-upload ref="upload" v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
-                        style="display: flex;" :on-success="handleAvatarSuccess" :on-remove="handleRemove"
-                        :before-upload="beforeUpload">
+                        style="display: flex;" 
+                        
+                        :show-file-list="true" :auto-upload="false" :on-change="handleChange">
                         <el-button type="primary">选择文件</el-button>
-
+                        <el-button style="margin-left: 40px;" type="success" @click.stop="submitUpload">确认上传</el-button>
                     </el-upload>
-                    <el-button style="margin-left: 40px;" type="success" @click="submitUpload">确认上传</el-button>
+                    
+                    
                 </el-form-item>
             </el-form>
         </el-card>
