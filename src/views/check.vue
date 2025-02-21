@@ -57,13 +57,14 @@ let node = ref([])
 
 let brr = ref([])
 
-const handleAvatarSuccess = (response, uploadFile) => {
-    console.log(response, uploadFile)
+const handleAvatarSuccess = (response, file) => {
+    // uploadedFileName.value = file.name; // 从 file 对象获取文件名
+    // console.log(response, uploadFile)
 
 
 }
 const handleRemove = (file, uploadFiles) => {
-    console.log(file, uploadFiles)
+    // console.log(file, uploadFiles)
 
 }
 const handleClose = (done) => {
@@ -71,6 +72,23 @@ const handleClose = (done) => {
 }
 
 //上传文件
+// const beforeUpload = async (options) => {
+//   const formData = new FormData();
+//   formData.append('FileVerify', options.file); // 直接使用 options.file
+
+//   try {
+//     await axios.post('/verify/upload2', formData, {
+//       headers: { 'Content-Type': 'multipart/form-data' }
+//     });
+//     console.log("res",res);
+//     type.value = res.data.type
+//     console.log(type);
+//     ElMessage.success('上传成功');
+//   } catch (err) {
+//     ElMessage.error('上传失败');
+//   }
+// };
+const uploadedFileName = ref(''); // 存储上传后的文件名
 const beforeUpload = (file) => {
     console.log('上传文件');
     axios.post("/verify/upload2", {
@@ -79,21 +97,22 @@ const beforeUpload = (file) => {
         //表单类型
         headers: { 'Content-Type': 'multipart/form-data' }
     }).then(res => {
-        // console.log(res);
+        console.log("res",res);
         type.value = res.data.type
         // console.log(type);
 
         ElMessage({
             message: '上传成功',
             type: 'success',
-        })
+        });
+        uploadedFileName.value = file.name; // 从 file 对象获取文件名
+        // return true;
     }).catch(err => {
         ElMessage({
             message: '上传失败',
             type: 'warning',
         })
     })
-
 }
 //提取指纹
 const fingerprints = () => {
@@ -104,7 +123,7 @@ const fingerprints = () => {
         text: '正在提取中',
         background: 'rgba(0, 0, 0, 0.7)',
     })
-
+    console.log("type值", type.value)
     axios.get(`/verify/fingerprint/${type.value}`).then(res => {
 
         hash.value = res.data.filetxHash  // 从响应数据中提取 'filetxHash' 属性，并更新响应式变量 `hash` 的值
@@ -539,15 +558,26 @@ const btnRef = ref()
             <div class="right-align">
                 <el-button ref="btnRef" type="danger" @click="open = true" plain round>帮助</el-button>
             </div>
+
             <el-row justify="center" style="align-items: center;" :gutter="20">
                 <!-- <el-col :span="20"> -->
                 <div class="header">
-                    <div style="display: flex;justify-content: center;">
+
+                    <div style="display: flex; justify-content: center; gap:10px">
                         <el-upload v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
-                            style="display: flex;width: 500px;" :on-success="handleAvatarSuccess"
-                            :on-remove="handleRemove" :before-upload="beforeUpload" :on-preview="handlePreview" :auto-upload="false">
+                            style="display: inline-flex;width: 500px;" :on-success="handleAvatarSuccess"
+                            :on-remove="handleRemove" :before-upload="beforeUpload"  :on-preview="handlePreview"  :auto-upload="true"  >
                             <el-button ref="ref1" type="primary">上传文件</el-button>
+                            <template #tip>
+                                <div v-if="uploadedFileName" style="margin-left: 20px; white-space: nowrap;">
+                                <!-- 已上传文件： -->
+                                {{ uploadedFileName }}
+                                </div>
+                            </template>
                         </el-upload>
+                        
+                    <!-- 显示上传后的文件名 -->
+                    
 
                     </div>
                     <div style="display: flex;justify-content: center;margin: 16px 0;">
