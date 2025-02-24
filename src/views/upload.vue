@@ -60,13 +60,14 @@ const fileList = ref([])
 //     // imageUrl.value = URL.createObjectURL(uploadFile.raw)
 // }
 
-// const handleRemove = (file, fileList) => {
-//     console.log("handleRemove" ,file, uploadFiles)
-//     form.name = ''
-//     form.size = ''
-//     form.num = ''
-//     form.resource = ''
-// }
+const handleRemove = (file, fileList) => {
+    console.log("handleRemove前" ,fileList)
+    form.value.raw = null
+    form.value.name = ''
+    form.value.size = ''
+    fileList.value = []
+    console.log("handleRemove后" ,fileList)
+}
 
 
 //未用
@@ -79,6 +80,17 @@ const fileList = ref([])
 // }
 
 const submitUpload = () => {
+        // 优先检查 fileList 而非 form.value.raw
+    if (fileList.value.length === 0) {
+        ElMessage.warning('请先选择要上传的文件！')
+        return
+    }
+
+    // 二次校验文件对象是否存在
+    if (!form.value.raw) {
+        ElMessage.error('文件数据异常，请重新选择')
+        return
+    }
     // console.log("upload数据", uploadData.value)
     console.log("form文件:", form.value.raw)
     // console.log("清空前 fileList:", fileList.value);
@@ -93,14 +105,21 @@ const submitUpload = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
     }).then(res => {
         ElMessage({
-            message: '上传成功',
+            message: '文件上传成功',
             type: 'success',
         })
         fileList.value=[]
     }).catch(err => {
+        if (!form.value.raw) {
+            ElMessage({ message: '请先选择要上传的文件！', type: 'warning' })
+        }
+        const errorMessage = err.response?.status === 400 
+            ? '请求参数错误，请检查文件格式或大小' 
+            : `上传失败（错误码：${err.response?.status || '未知'}）`
+        
         ElMessage({
-            message: '上传失败' + err,
-            type: 'warning',
+            message: errorMessage,
+            type: 'error', // 建议错误类型用error更直观
         })
     })
 }
@@ -134,9 +153,8 @@ const submitUpload = () => {
 
 
                     <el-upload ref="upload" v-model:file-list="fileList" class="upload-demo" action="" :limit="1"
-                        style="display: flex;" 
-                        
-                        :show-file-list="true" :auto-upload="false" :on-change="handleChange">
+                        style="display: flex;"                         
+                        :show-file-list="true" :auto-upload="false" :on-change="handleChange" :on-remove="handleRemove">
                         <el-button type="primary">选择文件</el-button>
                         <el-button style="margin-left: 40px;" type="success" @click.stop="submitUpload">确认上传</el-button>
                     </el-upload>
