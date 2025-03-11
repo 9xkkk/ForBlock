@@ -3,9 +3,7 @@
 ## 运行使用命令
 vscode控制台输入：npm run dev
 ## 修改连接节点
-在main.js中将需要的节点取消注释即可，如下图（目前只重新部署了A、B、E三个节点用于测试）
-
-![alt text](./READEME_img/image.png)
+在main.js中将需要的节点取消注释即可。
 
 ## 后端路由
 ### 页面一
